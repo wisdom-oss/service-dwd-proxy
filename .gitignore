@@ -23,4 +23,4 @@ go.work
 
 # Exclude the IntelliJ Files
 .idea
-
+.env

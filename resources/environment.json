@@ -1,0 +1,9 @@
+{
+  "required": [],
+  "optional": {
+    "LISTEN_PORT": "8000",
+    "AUTH_CONFIG_FILE_LOCATION": "./authConfig.json",
+    "ERROR_FILE_LOCATION": "./errors.json5",
+    "QUERY_FILE_LOCATION": "./queries.sql"
+  }
+}
