@@ -1,0 +1,137 @@
+openapi: 3.0.3
+info:
+  title: DWD Weather Observations Proxy
+  description: DWD Weather Observations Proxy
+  version: 1.0.0
+servers:
+  - url: '/api/dwd-proxy'
+
+components:
+  schemas:
+    TimeResolution:
+      description: The possible time granularity of the data
+      type: string
+      enum:
+        - 1_minute
+        - 5_minutes
+        - 10_minutes
+        - hourly
+        - subdaily
+        - daily
+        - monthly
+        - annual
+        - multi_annual
+
+paths:
+  /discover:
+    get:
+      summary: |
+        Discover the possible values and resolutions available in the OpenData
+        portal
+      description: |
+        This endpoint allows to discover the currently available data sets
+        visible in the open data portal.
+        It returns an object, which uses a TimeResolution as key and an
+        array as value showing the available data points for that resolution
+      responses:
+        200:
+          description: Discovery completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    - type: string
+                example:
+                  1_minute:
+                    - precipitation
+                  10_minutes:
+                    - air_temperature
+                    - extreme_wind
+                    - solar
+                    - wind
+                    - precipitation
+        502:
+          description: The DWD Open Data Portal is currently unavailable
+
+  /{resolution}/{data-point}/{station}:
+    parameters:
+      - in: path
+        name: resolution
+        schema:
+          allOf:
+            - $ref: '#/components/schemas/TimeResolution'
+        required: true
+      - in: path
+        name: data-point
+        schema:
+          type: string
+        required: true
+        description: |
+          The data point that shall be accessed and downloaded
+      - in: path
+        name: station
+        schema:
+          type: string
+        required: true
+        description: |
+          The station whose data shall be downloaded
+      - in: query
+        name: from
+        schema:
+          type: integer
+          format: int64
+        description: |
+          A unix timestamp denoting the **inclusive** date and time after which
+          the data needs to have been recorded to be returned
+      - in: query
+        name: until
+        schema:
+          type: integer
+          format: int64
+        description: |
+          A unix timestamp denoting the **inclusive** date and time before which
+          the data needs to have been recorded to be returned
+
+    get:
+      summary: Get data
+      responses:
+        200:
+          description: |
+            **Data found and returned**
+            
+            The requested station has data for the requested time resolution
+            and data point class and has been parsed successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ds:
+                      type: integer
+                      format: int64
+                      title: UNIX timestamp
+                      description: |
+                        the date and time at which the data has been recorded
+                    qn:
+                      type: integer
+                      enum:
+                        - 1
+                        - 2
+                        - 3
+                      title: Quality niveau
+                      description: |
+                        the technical measures for quality assurance that the
+                        data was piped through
+                  additionalProperties: { }
+                  example:
+                    ds: 1699601722
+                    qn: 1
+                    RWS_DAU_10: -999
+                    RWS_10: 0.00
+                    RWS_IND_10: -999
+
