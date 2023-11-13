@@ -1,16 +1,13 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
-	"fmt"
 	"os"
 	"strings"
 
 	wisdomType "github.com/wisdom-oss/commonTypes"
 
 	"github.com/joho/godotenv"
-	"github.com/qustavo/dotsql"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
@@ -156,39 +153,6 @@ func init() {
 
 	globals.AuthorizationConfiguration = authConfig
 	l.Info().Msg("loaded authorization configuration")
-}
-
-// this function opens a global connection to the postgres database used for
-// this microservice and loads the prepared sql queries.
-func init() {
-	l.Info().Msg("preparing global database connection")
-	// build a dsn from the environment variables
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=wisdom sslmode=disable",
-		globals.Environment["PG_HOST"], globals.Environment["PG_PORT"], globals.Environment["PG_USER"],
-		globals.Environment["PG_PASS"])
-
-	// now open the connection to the database
-	var err error
-	globals.Db, err = sql.Open("postgres", dsn)
-	if err != nil {
-		l.Fatal().Err(err).Msg("failed to open database connection")
-	}
-	l.Info().Msg("opened database connection")
-
-	// now ping the database to check the connectivity
-	l.Info().Msg("pinging the database to verify connectivity")
-	err = globals.Db.Ping()
-	if err != nil {
-		l.Fatal().Err(err).Msg("connectivity verification failed")
-	}
-	l.Info().Msg("database connection verified. open and working")
-
-	// now load the prepared sql queries
-	l.Info().Msg("loading sql queries")
-	globals.SqlQueries, err = dotsql.LoadFromFile(globals.Environment["QUERY_FILE_LOCATION"])
-	if err != nil {
-		l.Fatal().Err(err).Msg("unable to load queries used by the service")
-	}
 }
 
 // this function just logs that the init process is finished
