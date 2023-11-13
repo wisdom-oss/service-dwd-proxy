@@ -1,8 +1,8 @@
 [
   {
-    "code": "TEMPLATE",
-    "title": "Template Error",
-    "description": "This is a template error, if you see this this means the error handling in the template works",
-    "httpCode": 400
+    "code": "WRONG_STATUS_CODE",
+    "title": "Wrong Status Code received",
+    "description": "The open data portal responded with an unexpected response code. unable to process transaction",
+    "httpCode": 502
   }
 ]
