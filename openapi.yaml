@@ -22,37 +22,58 @@ components:
         - annual
         - multi_annual
 
+    Station:
+      description: A Station which takes measurements
+      type: object
+      properties:
+        id:
+          type: string
+          description: The Station ID used by the DWD in their open data portal
+        name:
+          type: string
+          description: The name of the station
+        state:
+          type: string
+          description: The state in which the station measures
+        location:
+          type: object
+          description: A GeoJSON representation of the stations location
+        capabilities:
+          type: object
+          description: |
+            An object which shows the data types and the available time 
+            resolutions.
+            The key identifies the data type available and the value contains
+            the available time resolutions for the type of data.
+          additionalProperties:
+            type: array
+            example:
+              - daily
+              - 1_minute
+              - hourly
+            items:
+              $ref: "#/components/schemas/TimeResolution"
+
+
 paths:
-  /discover:
+  /:
     get:
       summary: |
-        Discover the possible values and resolutions available in the OpenData
-        portal
+        Discover the available stations and their data capabilities
       description: |
-        This endpoint allows to discover the currently available data sets
-        visible in the open data portal.
-        It returns an object, which uses a TimeResolution as key and an
-        array as value showing the available data points for that resolution
+        This endpoint allows the discovery of all stations currently available
+        on the open data platform.
+        Since the service needs to iterate through many directories and needs
+        to make may request, the discovery may take up to 45 seconds to finish.
       responses:
         200:
           description: Discovery completed successfully
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties:
-                  type: array
-                  items:
-                    - type: string
-                example:
-                  1_minute:
-                    - precipitation
-                  10_minutes:
-                    - air_temperature
-                    - extreme_wind
-                    - solar
-                    - wind
-                    - precipitation
+                type: array
+                items:
+                  $ref: "#/components/schemas/Station"
         502:
           description: The DWD Open Data Portal is currently unavailable
 
