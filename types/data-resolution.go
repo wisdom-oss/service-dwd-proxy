@@ -23,33 +23,42 @@ const (
 // String returns the value needed to
 func (r Resolution) String() string {
 	var result string
-	switch {
-	case r&OneMinute != 0:
+	if r&OneMinute != 0 {
 		result += "1_minute,"
-		break
-	case r&FiveMinutes != 0:
+	}
+
+	if r&FiveMinutes != 0 {
 		result += "5_minutes,"
-		break
-	case r&TenMinutes != 0:
+	}
+
+	if r&TenMinutes != 0 {
 		result += "10_minutes,"
-		break
-	case r&Hourly != 0:
+	}
+
+	if r&Hourly != 0 {
 		result += "hourly,"
-		break
-	case r&SubDaily != 0:
+	}
+
+	if r&SubDaily != 0 {
 		result += "subdaily,"
-		break
-	case r&Daily != 0:
+	}
+
+	if r&Daily != 0 {
 		result += "daily,"
-		break
-	case r&Monthly != 0:
+	}
+
+	if r&Monthly != 0 {
 		result += "monthly,"
-		break
-	case r&Annually != 0:
+	}
+
+	if r&Annually != 0 {
 		result += "annual,"
-	case r&MultiAnnually != 0:
+	}
+
+	if r&MultiAnnually != 0 {
 		result += "multi_annual,"
 	}
+
 	return strings.Trim(result, ",")
 }
 
