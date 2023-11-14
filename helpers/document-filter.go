@@ -40,7 +40,7 @@ func FilterDocumentForFiles(document *html.Node) (files []string) {
 		if node.Type == html.ElementNode && node.Data == "a" {
 			// since the node is a link to a possible folder, get the link to it
 			var link string
-			for _, attr := range node.FirstChild.Attr {
+			for _, attr := range node.Attr {
 				if attr.Key == "href" {
 					link = attr.Val
 				}

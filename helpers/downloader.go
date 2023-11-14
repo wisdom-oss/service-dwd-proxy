@@ -1,8 +1,6 @@
 package helpers
 
 import (
-	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -24,13 +22,16 @@ func DownloadFile(url string) (*os.File, error) {
 	}
 	// now check if status 200 was returned
 	if res.StatusCode != 200 {
-		return nil, errors.New("unable to download file if status code is non-200")
+		return nil, ErrStatusNot200
 	}
 	// since all checks passed, write the contents into the file
 	_, err = io.Copy(f, res.Body)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(f.Name())
+	err = f.Sync()
+	if err != nil {
+		return nil, err
+	}
 	return f, nil
 }
