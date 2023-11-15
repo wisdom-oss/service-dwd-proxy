@@ -3,6 +3,7 @@ module github.com/wisdom-oss/service-dwd-proxy
 go 1.21.1
 
 require (
+	github.com/andybalholm/brotli v1.0.6
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/httplog v0.3.2
 	github.com/joho/godotenv v1.5.1

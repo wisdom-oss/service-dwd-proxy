@@ -113,7 +113,12 @@ func TimeSeries(w http.ResponseWriter, r *http.Request) {
 		}
 		data = append(data, datasets...)
 	}
-
-	json.NewEncoder(w).Encode(data)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(data)
+	if err != nil {
+		errorHandler <- err
+		<-statusChannel
+		return
+	}
 
 }
