@@ -16,5 +16,11 @@
     "title": "Unsupported Data Resolution",
     "description": "The specified data resolution is not supported by the open data portal",
     "httpCode": 400
+  },
+  {
+    "code": "STATION_WITHOUT_DATA",
+    "title": "Station without data",
+    "description": "The specified station has no data for the selected type and resolution. Please use another station.",
+    "httpCode": 404
   }
 ]

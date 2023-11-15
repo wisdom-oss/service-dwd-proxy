@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -91,6 +92,12 @@ func TimeSeries(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+	if dataFileUrls == nil {
+		errorHandler <- "STATION_WITHOUT_DATA"
+		<-statusChannel
+		return
+	}
+	var data []map[string]interface{}
 	for _, dataFileUrl := range dataFileUrls {
 		file, err := helpers.DownloadFile(dataFileUrl)
 		if err != nil {
@@ -98,7 +105,15 @@ func TimeSeries(w http.ResponseWriter, r *http.Request) {
 			<-statusChannel
 			return
 		}
-		helpers.ParseDataFile(file.Name())
+		datasets, err := helpers.ParseDataFile(file.Name())
+		if err != nil {
+			errorHandler <- err
+			<-statusChannel
+			return
+		}
+		data = append(data, datasets...)
 	}
+
+	json.NewEncoder(w).Encode(data)
 
 }
