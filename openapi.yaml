@@ -4,7 +4,7 @@ info:
   description: DWD Weather Observations Proxy
   version: 1.0.0
 servers:
-  - url: '/api/dwd-proxy'
+  - url: '/api/dwd'
 
 components:
   schemas:
