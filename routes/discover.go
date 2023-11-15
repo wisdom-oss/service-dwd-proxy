@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -298,6 +299,7 @@ func DiscoverMetadata(w http.ResponseWriter, r *http.Request) {
 
 			stationMap[stationID] = s
 		}
+		os.Remove(file[0])
 	}
 	var stations []types.Station
 	for _, station := range stationMap {

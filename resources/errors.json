@@ -4,5 +4,17 @@
     "title": "Wrong Status Code received",
     "description": "The open data portal responded with an unexpected response code. unable to process transaction",
     "httpCode": 502
+  },
+  {
+    "code": "UNSUPPORTED_DATA_TYPE",
+    "title": "Unsupported Data Type",
+    "description": "The data type specified in the request is not available. please check the data resolution",
+    "httpCode": 400
+  },
+  {
+    "code": "UNSUPPORTED_DATA_RESOLUTION",
+    "title": "Unsupported Data Resolution",
+    "description": "The specified data resolution is not supported by the open data portal",
+    "httpCode": 400
   }
 ]
