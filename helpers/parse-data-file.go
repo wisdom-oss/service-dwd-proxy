@@ -19,7 +19,7 @@ func ParseDataFile(path string) (datasets []map[string]interface{}, err error) {
 		return nil, err
 	}
 	for _, file := range zipFile.File {
-		if !strings.HasSuffix(file.Name, ".txt") {
+		if !strings.HasSuffix(file.Name, ".txt") && !strings.Contains(file.Name, "produkt") {
 			continue
 		}
 		f, err := file.Open()

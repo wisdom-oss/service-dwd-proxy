@@ -45,6 +45,14 @@ components:
             resolutions.
             The key identifies the data type available and the value contains
             the available time resolutions for the type of data.
+          example:
+            precipitation:
+              - daily
+              - 1_minute
+              - hourly
+            solar:
+              - hourly
+              - 10_minutes
           additionalProperties:
             type: array
             example:
@@ -54,6 +62,16 @@ components:
             items:
               $ref: "#/components/schemas/TimeResolution"
 
+tags:
+  - name: Discovery
+    description: | 
+      These endpoints allow the discovery of available data capabilities
+      and stations provided by the DWD Open Data Portal
+
+  - name: Data
+    description: |
+      Endpoints listed here allow receiving data parsed directly from the
+      Open Data Portal
 
 paths:
   /:
@@ -76,6 +94,194 @@ paths:
                   $ref: "#/components/schemas/Station"
         502:
           description: The DWD Open Data Portal is currently unavailable
+
+  /{stationID}:
+    parameters:
+      - in: path
+        name: stationID
+        description: |
+          The stations numerical ID used to identify the station in the data
+          products
+        schema:
+          type: string
+          pattern: '^\d{5}$'
+        required: true
+
+    get:
+      summary: Retrieve information about a single station
+      description: |
+        This endpoint returns all information available for a single station.
+      tags:
+        - Discovery
+      responses:
+        200:
+          description: Information about the station
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Station'
+
+        404:
+          description: No station found with this ID
+
+        502:
+          description: OpenData Portal not reachable
+
+  /{stationID}/{data-capability}:
+    parameters:
+      - in: path
+        name: stationID
+        description: |
+          The stations numerical ID used to identify the station in the data
+          products
+        schema:
+          type: string
+          pattern: '^\d{5}$'
+        required: true
+      - in: path
+        name: data-capability
+        description: |
+          The capability of the station returned in the Station object
+        schema:
+          type: string
+        required: true
+
+    get:
+      summary: Check if the data capability is available
+      description: |
+        A request to this endpoint checks if the supplied data capability is
+        available for the station and returns the available granularity levels 
+        for the capability.
+      tags:
+        - Discovery
+
+      responses:
+        200:
+          description: |
+            The station supports this data capability.
+            
+            The response body contains an array of possible granularity values
+            that are provided by the open data portal.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimeResolution"
+              example:
+                - 1_minute
+                - hourly
+                - daily
+        404:
+          description: |
+            Either the station does not support this data capability or the
+            station is unknown
+
+  /{stationID}/{data-capability}/{granularity}:
+    parameters:
+      - in: path
+        name: stationID
+        description: |
+          The stations numerical ID used to identify the station in the data
+          products
+        schema:
+          type: string
+          pattern: '^\d{5}$'
+        required: true
+      - in: path
+        name: data-capability
+        description: |
+          The data capability from which the data shall be read by the service
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: granularity
+        description: |
+          The granularity that shall be used when pulling the data from the
+          Open Data Portal.
+          This granularity needs to be supported by the station and the data
+          capability since there are no data aggregations done in the service
+          to raise the granularity
+        schema:
+          type: string
+        required: true
+    
+
+    get:
+      summary: Read data from the Open Data Portal
+      description: |
+        This call reads the available data from the open data portal and
+        restructures the files provided by the open data portal into a json
+        response while keeping the original column titles as object keys.
+      tags:
+        - Data
+      responses:
+        200:
+          description: Data from the Open Data Portal
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ds:
+                          type: integer
+                          format: int64
+                          title: UNIX timestamp
+                          description: |
+                            the date and time at which the data has been recorded
+                        qn:
+                          type: integer
+                          enum:
+                            - 1
+                            - 2
+                            - 3
+                          title: Quality niveau
+                          description: |
+                            the technical measures for quality assurance that the
+                            data was piped through
+                      additionalProperties: { }
+                      example:
+                        ds: 1699601722
+                        qn: 1
+                        RWS_DAU_10: -999
+                        RWS_10: 0.00
+                        RWS_IND_10: -999
+                  fieldDescriptors:
+                    type: object
+                    additionalProperties: {}
+                    title: Field Descriptors
+                    description: |
+                      The field descriptors contain the descriptions provided
+                      by the meta data files for the station, data capability
+                      and granularity.
+                    example:
+                      RWS_DAU_10: duration of precipitation in the last 10 minutes
+                  datasetDescriptions:
+                    type: object
+                    title: Dataset Description Files
+                    description: |
+                      This object contains the dataset description files
+                      provided by the Open Data Portal encoded into a base64
+                      string
+                    properties:
+                      english:
+                        type: string
+                        format: binary
+                        description: English version
+                      german:
+                        type: string
+                        format: binary
+                        description: German version
+
+
+
+
 
   /{resolution}/{data-point}/{station}:
     parameters:
