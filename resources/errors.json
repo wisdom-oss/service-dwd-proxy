@@ -22,5 +22,11 @@
     "title": "Station without data",
     "description": "The specified station has no data for the selected type and resolution. Please use another station.",
     "httpCode": 404
+  },
+  {
+    "code": "INVALID_TIMESTAMP",
+    "title": "Invalid timestamp in request",
+    "description": "A timestamp supplied to the request could not be read as an integer. Please check your request",
+    "httpCode": 400
   }
 ]

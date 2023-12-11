@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -23,6 +25,35 @@ func TimeSeries(w http.ResponseWriter, r *http.Request) {
 	rawDataType := chi.URLParam(r, "data-type")
 	rawResolution := chi.URLParam(r, "resolution")
 	stationID := chi.URLParam(r, "station")
+
+	// get the query parameters
+	queryParameter := r.URL.Query()
+	fromTimeStampString := strings.TrimSpace(queryParameter.Get("from"))
+	untilTimeStampString := strings.TrimSpace(queryParameter.Get("until"))
+
+	var dataStart, dataEnd time.Time
+
+	if fromTimeStampString != "" {
+		i, err := strconv.ParseInt(fromTimeStampString, 10, 64)
+		if err != nil {
+			errorHandler <- "INVALID_TIMESTAMP"
+			<-statusChannel
+			return
+		}
+
+		dataStart = time.Unix(i, 0)
+	}
+
+	if untilTimeStampString != "" {
+		i, err := strconv.ParseInt(untilTimeStampString, 10, 64)
+		if err != nil {
+			errorHandler <- "INVALID_TIMESTAMP"
+			<-statusChannel
+			return
+		}
+
+		dataEnd = time.Unix(i, 0)
+	}
 
 	// now check if the data type is supported
 	dataType := types.DataType(0)
@@ -105,7 +136,7 @@ func TimeSeries(w http.ResponseWriter, r *http.Request) {
 			<-statusChannel
 			return
 		}
-		datasets, err := helpers.ParseDataFile(file.Name())
+		datasets, err := helpers.ParseDataFile(file.Name(), [2]time.Time{dataStart, dataEnd})
 		if err != nil {
 			errorHandler <- err
 			<-statusChannel

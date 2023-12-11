@@ -13,7 +13,7 @@ import (
 
 const measurementDateTimeFormat = "200601021504"
 
-func ParseDataFile(path string) (datasets []map[string]interface{}, err error) {
+func ParseDataFile(path string, timeRange [2]time.Time) (datasets []map[string]interface{}, err error) {
 	zipFile, err := zip.OpenReader(path)
 	if err != nil {
 		return nil, err
@@ -39,12 +39,21 @@ func ParseDataFile(path string) (datasets []map[string]interface{}, err error) {
 		header := lines[0]
 		// remove the station id from the header since it is not needed
 		header = header[1 : len(header)-1]
+		// now get the start date from which the datasets shall be included
+		dataStartDate := timeRange[0]
+		dataEndDate := timeRange[1]
 		for _, data := range lines[2:] {
 			// same here
 			data = data[1 : len(data)-1]
 			dataset := make(map[string]interface{})
 			// now parse the measurement date
 			measurementTime, err := time.Parse(measurementDateTimeFormat, data[0])
+			if !dataStartDate.IsZero() && measurementTime.Before(dataStartDate) {
+				continue
+			}
+			if !dataEndDate.IsZero() && measurementTime.After(dataEndDate) {
+				continue
+			}
 			if err != nil {
 				return nil, err
 			}
