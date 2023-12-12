@@ -192,12 +192,10 @@ func (r Resolution) MarshalJSON() ([]byte, error) {
 }
 
 func (r *Resolution) UnmarshalJSON(src []byte) error {
-	var resolutions []string
-	if err := json.Unmarshal(src, &resolutions); err != nil {
+	var resolution string
+	if err := json.Unmarshal(src, &resolution); err != nil {
 		return err
 	}
-	for _, resolution := range resolutions {
-		r.ParseString(resolution)
-	}
+	r.ParseString(resolution)
 	return nil
 }

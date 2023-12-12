@@ -172,3 +172,12 @@ func (dt *DataType) ParseStringWithSeperator(s, sep string) {
 func (dt DataType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(dt.String())
 }
+
+func (dt *DataType) UnmarshalJSON(src []byte) error {
+	var dataType string
+	if err := json.Unmarshal(src, &dataType); err != nil {
+		return err
+	}
+	dt.ParseString(dataType)
+	return nil
+}
