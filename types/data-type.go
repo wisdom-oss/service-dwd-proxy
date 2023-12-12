@@ -1,6 +1,9 @@
 package types
 
-import "strings"
+import (
+	"encoding/json"
+	"strings"
+)
 
 type DataType uint32
 
@@ -164,4 +167,8 @@ func (dt *DataType) ParseStringWithSeperator(s, sep string) {
 		}
 	}
 	*dt = parsedDataTypes
+}
+
+func (dt DataType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(dt.String())
 }

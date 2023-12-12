@@ -188,9 +188,7 @@ func (r *Resolution) ParseUrlValues(q url.Values, key string) {
 }
 
 func (r Resolution) MarshalJSON() ([]byte, error) {
-	s := r.String()
-	parts := strings.Split(s, ",")
-	return json.Marshal(parts)
+	return json.Marshal(r.String())
 }
 
 func (r *Resolution) UnmarshalJSON(src []byte) error {
