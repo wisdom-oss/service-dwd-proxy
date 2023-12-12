@@ -202,11 +202,18 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/TimeResolution"
-              example:
-                - 1_minute
-                - hourly
-                - daily
+                  type: object
+                  properties:
+                    resolution:
+                      $ref: '#/components/schemas/TimeResolution'
+                    availableFrom:
+                      description: The date from which on the capability is available
+                      type: string
+                      format: date-time
+                    availableUntil:
+                      description: The date until data is available for the capability
+                      type: string
+                      format: date-time
         404:
           description: |
             Either the station does not support this data capability or the
