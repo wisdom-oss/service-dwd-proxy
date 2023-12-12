@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/andybalholm/brotli"
 	"github.com/go-chi/chi/v5"
@@ -14,7 +15,7 @@ import (
 	"github.com/wisdom-oss/service-dwd-proxy/types"
 )
 
-func StationInformation(w http.ResponseWriter, r *http.Request) {
+func DataTypeInformation(w http.ResponseWriter, r *http.Request) {
 	// get the error handler
 	errorHandler := r.Context().Value("error-channel").(chan<- interface{})
 	statusChannel := r.Context().Value("status-channel").(<-chan bool)
@@ -46,17 +47,53 @@ func StationInformation(w http.ResponseWriter, r *http.Request) {
 	}
 	// now search for the station by iterating over them
 	stationID := chi.URLParam(r, "stationID")
-
-	for _, station := range stations {
+	dataTypeString := chi.URLParam(r, "dataType")
+	// now check if the data type is supported
+	dataType := types.DataType(0)
+	dataType.ParseString(dataTypeString)
+	if dataType == 0 {
+		errorHandler <- "UNSUPPORTED_DATA_TYPE"
+		<-statusChannel
+		return
+	}
+	var station types.Station
+	var stationFound bool
+	for _, station = range stations {
 		if station.ID == stationID {
-			w.Header().Set("Content-Type", "application/json")
-			err = json.NewEncoder(w).Encode(station)
-			return
+			stationFound = true
+			break
 		}
 	}
+	if !stationFound {
+		// since no station has been found return a 404
+		errorHandler <- "UNKNOWN_STATION"
+		<-statusChannel
+		return
+	}
 
-	// since no station has been found return a 404
-	errorHandler <- "UNKNOWN_STATION"
-	<-statusChannel
-	return
+	type resolutionTimeRange struct {
+		Resolution     types.Resolution `json:"resolution"`
+		AvailableFrom  time.Time        `json:"availableFrom"`
+		AvailableUntil time.Time        `json:"availableUntil"`
+	}
+
+	var supportedResolutions []resolutionTimeRange
+
+	for _, capability := range station.DataCapabilities {
+		if capability.DataType == dataType {
+			supportedResolutions = append(supportedResolutions, resolutionTimeRange{
+				Resolution:     capability.Resolution,
+				AvailableFrom:  capability.AvailableFrom,
+				AvailableUntil: capability.AvailableUntil,
+			})
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(supportedResolutions)
+	if err != nil {
+		errorHandler <- err
+		<-statusChannel
+		return
+	}
+
 }
