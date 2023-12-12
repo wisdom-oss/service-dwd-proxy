@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -43,7 +44,9 @@ func main() {
 	router.Use(wisdomMiddleware.Authorization(globals.AuthorizationConfiguration, globals.ServiceName))
 	// now mount the admin router
 	router.Get("/", routes.DiscoverMetadata)
-	router.Get("/{station}/{data-type}/{resolution}", routes.TimeSeries)
+	router.Get("/{stationID}", routes.StationInformation)
+	router.Get("/{stationID}/{dataType}", routes.DataTypeInformation)
+	router.Get("/{stationID}/{dataType}/{resolution}", routes.TimeSeries)
 
 	// now boot up the service
 	// Configure the HTTP server
@@ -55,8 +58,16 @@ func main() {
 		Handler:      router,
 	}
 
-	// now run an initial discovery of all dwd stations
-	helpers.RunDiscovery()
+	// now run an initial discovery of all dwd stations if no station list is
+	// currently present
+	stationListEntries, err := globals.RedisClient.Exists(context.Background(), "dwd-station-list").Result()
+	if err != nil {
+		l.Error().Err(err).Msg("unable to verify the existence of the station list")
+	}
+	if stationListEntries == 0 {
+		log.Warn().Msg("no station list currently present. running initial update")
+		helpers.RunDiscovery()
+	}
 
 	// Start the server and log errors that happen while running it
 	go func() {
