@@ -9,22 +9,46 @@ import (
 
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/transform"
+
+	"github.com/wisdom-oss/service-dwd-proxy/types"
 )
 
-const measurementDateTimeFormat = "200601021504"
-
-func ParseDataFile(path string, timeRange [2]time.Time) (datasets []map[string]interface{}, err error) {
+func ParseDataFile(path string, timeRange [2]time.Time) (datasets []map[string]interface{}, parameters []types.TimeseriesField, err error) {
 	zipFile, err := zip.OpenReader(path)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	for _, file := range zipFile.File {
-		if !strings.HasSuffix(file.Name, ".txt") && !strings.Contains(file.Name, "produkt") {
+		if strings.HasSuffix(file.Name, ".txt") && strings.HasPrefix(file.Name, "Metadaten_Parameter") {
+			f, err := file.Open()
+			if err != nil {
+				return nil, nil, err
+			}
+			windows1252Reader := transform.NewReader(f, charmap.Windows1252.NewDecoder())
+			csvReader := csv.NewReader(windows1252Reader)
+			csvReader.TrimLeadingSpace = true
+			csvReader.Comma = ';'
+			csvReader.FieldsPerRecord = -1
+
+			lines, err := csvReader.ReadAll()
+			if err != nil {
+				return nil, nil, err
+			}
+			// split the lines into the header and the contents
+			header := lines[0]
+			content := lines[1 : len(lines)-2]
+
+			parameters, err = parseMetadataFileContents(header, content)
+			if err != nil {
+				return nil, nil, err
+			}
+		}
+		if !strings.HasSuffix(file.Name, ".txt") || !strings.Contains(file.Name, "produkt") {
 			continue
 		}
 		f, err := file.Open()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		windows1252Reader := transform.NewReader(f, charmap.Windows1252.NewDecoder())
 		csvReader := csv.NewReader(windows1252Reader)
@@ -34,7 +58,7 @@ func ParseDataFile(path string, timeRange [2]time.Time) (datasets []map[string]i
 
 		lines, err := csvReader.ReadAll()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		header := lines[0]
 		// remove the station id from the header since it is not needed
@@ -47,15 +71,21 @@ func ParseDataFile(path string, timeRange [2]time.Time) (datasets []map[string]i
 			data = data[1 : len(data)-1]
 			dataset := make(map[string]interface{})
 			// now parse the measurement date
-			measurementTime, err := time.Parse(measurementDateTimeFormat, data[0])
+			measurementTime, err := time.Parse(DateFormat_DateTimeFull, data[0])
+			if err != nil {
+				measurementTime, err = time.Parse(DateFormat_DateTimeHourOnly, data[0])
+				if err != nil {
+					measurementTime, err = time.Parse(DateFormat_NoTime, data[0])
+					if err != nil {
+						return nil, nil, err
+					}
+				}
+			}
 			if !dataStartDate.IsZero() && measurementTime.Before(dataStartDate) {
 				continue
 			}
 			if !dataEndDate.IsZero() && measurementTime.After(dataEndDate) {
 				continue
-			}
-			if err != nil {
-				return nil, err
 			}
 			dataset["ts"] = measurementTime
 			for i := 1; i < len(data); i++ {
@@ -72,5 +102,5 @@ func ParseDataFile(path string, timeRange [2]time.Time) (datasets []map[string]i
 		}
 	}
 
-	return datasets, nil
+	return datasets, parameters, nil
 }
