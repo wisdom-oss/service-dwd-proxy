@@ -28,5 +28,11 @@
     "title": "Invalid timestamp in request",
     "description": "A timestamp supplied to the request could not be read as an integer. Please check your request",
     "httpCode": 400
+  },
+  {
+    "code": "UNKNOWN_STATION",
+    "title": "Unknown Station",
+    "description": "The station could not be found in the open data portal. if this is a new station please wait until the next data refresh happened",
+    "httpCode": 404
   }
 ]
