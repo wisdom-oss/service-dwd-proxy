@@ -7,6 +7,6 @@ RUN go build -o /tmp/build/app
 
 FROM alpine:latest
 COPY --from=build-service /tmp/build/app /service
-COPY resources /res
+COPY resources/* /
 ENTRYPOINT ["/service"]
 EXPOSE 8000
