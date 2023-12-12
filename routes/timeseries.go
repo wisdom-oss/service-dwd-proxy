@@ -22,9 +22,9 @@ func TimeSeries(w http.ResponseWriter, r *http.Request) {
 	statusChannel := r.Context().Value("status-channel").(<-chan bool)
 
 	// get the url parameters
-	rawDataType := chi.URLParam(r, "data-type")
+	rawDataType := chi.URLParam(r, "dataType")
 	rawResolution := chi.URLParam(r, "resolution")
-	stationID := chi.URLParam(r, "station")
+	stationID := chi.URLParam(r, "stationID")
 
 	// get the query parameters
 	queryParameter := r.URL.Query()
