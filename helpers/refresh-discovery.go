@@ -320,14 +320,25 @@ func RunDiscovery() {
 	}
 
 	// now write the stations and their data into the redis database
-	var stationBytes bytes.Buffer
-	compressionWriter := brotli.NewWriterLevel(&stationBytes, 9)
-	err = json.NewEncoder(compressionWriter).Encode(stations)
+	stationBytes, err := json.Marshal(&stations)
+	if err != nil {
+		l.Error().Err(err).Msg("unable to marshal station list")
+		return
+	}
+	var compressedByteBuffer bytes.Buffer
+	brotliWriter := brotli.NewWriterLevel(&compressedByteBuffer, 9)
+	writtenBytes, err := brotliWriter.Write(stationBytes)
 	if err != nil {
 		l.Error().Err(err).Msg("unable to compress json response. service may return error")
 		return
 	}
-	err = globals.RedisClient.Set(discoveryContext, "dwd-station-list", stationBytes.Bytes(), 0).Err()
+	err = brotliWriter.Flush()
+	if err != nil {
+		l.Error().Err(err).Msg("unable to flush brotli writer to buffer")
+		return
+	}
+	fmt.Println("compressed response into bytes. size:", writtenBytes)
+	err = globals.RedisClient.Set(discoveryContext, "dwd-station-list", compressedByteBuffer.Bytes(), 0).Err()
 	if err != nil {
 		l.Error().Err(err).Msg("unable to store station response. service may return error")
 		return
