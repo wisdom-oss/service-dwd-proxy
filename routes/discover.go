@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	geojson "github.com/paulmach/go.geojson"
 	"github.com/rs/zerolog/log"
@@ -239,7 +240,20 @@ func DiscoverMetadata(w http.ResponseWriter, r *http.Request) {
 		}
 		for _, record := range records {
 			stationID := record[0]
-
+			fromDateString := record[1]
+			untilDateString := record[2]
+			fromDate, err := time.Parse(helpers.DateFormat_NoTime, fromDateString)
+			if err != nil {
+				errorHandler <- err
+				<-statusChannel
+				return
+			}
+			untilDate, err := time.Parse(helpers.DateFormat_NoTime, untilDateString)
+			if err != nil {
+				errorHandler <- err
+				<-statusChannel
+				return
+			}
 			station, stationAlreadyCreated := stationMap[stationID]
 			if stationAlreadyCreated {
 				resolution := types.Resolution(0)
@@ -250,7 +264,16 @@ func DiscoverMetadata(w http.ResponseWriter, r *http.Request) {
 				if dataType == 0 {
 					panic(file[1])
 				}
-				station.UpdateCapabilities(dataType, resolution)
+				// now construct the data capability
+				c := types.Capability{
+					DataType:       dataType,
+					Resolution:     resolution,
+					AvailableFrom:  fromDate,
+					AvailableUntil: untilDate,
+				}
+				station.AddCapability(c)
+				stationMap[stationID] = station
+
 				continue
 			}
 
@@ -295,14 +318,25 @@ func DiscoverMetadata(w http.ResponseWriter, r *http.Request) {
 
 			dataType := types.DataType(0)
 			dataType.ParseStringWithSeperator(file[1], "/")
-			s.UpdateCapabilities(dataType, resolution)
-
+			c := types.Capability{
+				DataType:       dataType,
+				Resolution:     resolution,
+				AvailableFrom:  fromDate,
+				AvailableUntil: untilDate,
+			}
+			s.AddCapability(c)
 			stationMap[stationID] = s
 		}
 		os.Remove(file[0])
 	}
 	var stations []types.Station
 	for _, station := range stationMap {
+		err = station.UpdateHistoricalState()
+		if err != nil {
+			errorHandler <- err
+			<-statusChannel
+			return
+		}
 		stations = append(stations, station)
 	}
 

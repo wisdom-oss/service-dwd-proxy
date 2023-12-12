@@ -95,10 +95,6 @@ func TimeSeries(w http.ResponseWriter, r *http.Request) {
 	folders := helpers.FilterDocumentForFolders(indexPage)
 	var dataFileUrls []string
 	for _, folder := range folders {
-		// exclude the meta data folder
-		if folder == "meta_data/" {
-			continue
-		}
 		url := fmt.Sprintf("%s/%s", url, folder)
 		filePage, err := helpers.GetIndexPage(url)
 		if err != nil {
@@ -129,6 +125,7 @@ func TimeSeries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var data []map[string]interface{}
+	var parameters []types.TimeseriesField
 	for _, dataFileUrl := range dataFileUrls {
 		file, err := helpers.DownloadFile(dataFileUrl)
 		if err != nil {
@@ -136,16 +133,36 @@ func TimeSeries(w http.ResponseWriter, r *http.Request) {
 			<-statusChannel
 			return
 		}
-		datasets, err := helpers.ParseDataFile(file.Name(), [2]time.Time{dataStart, dataEnd})
-		if err != nil {
-			errorHandler <- err
-			<-statusChannel
-			return
+		if strings.Contains(dataFileUrl, "meta_data") {
+			fieldDescriptors, err := helpers.ParseMetadataArchive(file.Name())
+			if err != nil {
+				errorHandler <- err
+				<-statusChannel
+				return
+			}
+			parameters = append(parameters, fieldDescriptors...)
+		} else {
+			datasets, fieldDescriptors, err := helpers.ParseDataFile(file.Name(), [2]time.Time{dataStart, dataEnd})
+			if err != nil {
+				errorHandler <- err
+				<-statusChannel
+				return
+			}
+			parameters = append(parameters, fieldDescriptors...)
+			data = append(data, datasets...)
 		}
-		data = append(data, datasets...)
+
 	}
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(data)
+	type res struct {
+		Data []map[string]interface{} `json:"timeseries"`
+		Meta []types.TimeseriesField  `json:"metadata"`
+	}
+	response := res{
+		Data: data,
+		Meta: parameters,
+	}
+	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		errorHandler <- err
 		<-statusChannel
