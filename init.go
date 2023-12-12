@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"strings"
 
+	"github.com/redis/go-redis/v9"
 	wisdomType "github.com/wisdom-oss/commonTypes"
 
 	"github.com/joho/godotenv"
@@ -146,13 +148,26 @@ func init() {
 	var authConfig wisdomType.AuthorizationConfiguration
 	err := authConfig.PopulateFromFilePath(filePath)
 	if err != nil {
-		l.Error().Err(err).Msg("unable to parse authorization configuration. ussing default")
+		l.Error().Err(err).Msg("unable to parse authorization configuration. using default")
 		globals.AuthorizationConfiguration = defaultAuth
 		return
 	}
 
 	globals.AuthorizationConfiguration = authConfig
 	l.Info().Msg("loaded authorization configuration")
+}
+
+func init() {
+	redisOptions, err := redis.ParseURL(globals.Environment["REDIS_URI"])
+	if err != nil {
+		l.Fatal().Err(err).Msg("unable to parse redis uri")
+	}
+	globals.RedisClient = redis.NewClient(redisOptions)
+	l.Info().Msg("pinging redis")
+	err = globals.RedisClient.Ping(context.Background()).Err()
+	if err != nil {
+		l.Fatal().Err(err).Msg("unable to ping redis server")
+	}
 }
 
 // this function just logs that the init process is finished

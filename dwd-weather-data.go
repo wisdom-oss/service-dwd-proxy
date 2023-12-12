@@ -16,6 +16,7 @@ import (
 	wisdomMiddleware "github.com/wisdom-oss/microservice-middlewares/v3"
 
 	"github.com/wisdom-oss/service-dwd-proxy/globals"
+	"github.com/wisdom-oss/service-dwd-proxy/helpers"
 	"github.com/wisdom-oss/service-dwd-proxy/routes"
 )
 
@@ -23,7 +24,7 @@ import (
 // microservice
 func main() {
 	// create a new logger for the main function
-	l := log.With().Str("step", "main-service").Logger()
+	l := log.With().Str("part", "http-server").Logger()
 	l.Info().Msgf("starting %s service", globals.ServiceName)
 
 	// create a new router
@@ -54,8 +55,12 @@ func main() {
 		Handler:      router,
 	}
 
+	// now run an initial discovery of all dwd stations
+	helpers.RunDiscovery()
+
 	// Start the server and log errors that happen while running it
 	go func() {
+		l.Info().Msg("starting http server for requests")
 		if err := server.ListenAndServe(); err != nil {
 			l.Fatal().Err(err).Msg("An error occurred while starting the http server")
 		}
@@ -66,7 +71,22 @@ func main() {
 	cancelSignal := make(chan os.Signal, 1)
 	signal.Notify(cancelSignal, os.Interrupt)
 
-	// Block further code execution until the shutdown signal was received
-	<-cancelSignal
+	// now create a ticker that is used to periodically renew the station
+	// discovery
+	discoveryUpdate := time.Tick(5 * 60 * time.Second)
+
+serviceLoop:
+	for {
+		select {
+		case <-discoveryUpdate:
+			log.Info().Msg("updating station data")
+			helpers.RunDiscovery()
+			log.Info().Msg("finished station update")
+		case <-cancelSignal:
+			break serviceLoop
+		}
+	}
+
+	log.Info().Msg("shutting down service after STOPSIGNAL")
 
 }
