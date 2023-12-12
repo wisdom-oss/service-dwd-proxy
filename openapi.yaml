@@ -8,6 +8,23 @@ servers:
 
 components:
   schemas:
+    Capability:
+      description: Represents a single capability of a station
+      type: object
+      properties:
+        dataType:
+          description: |
+            The data type which is represented in this capability object
+        resolution:
+          $ref: '#/components/schemas/TimeResolution'
+        availableFrom:
+          description: The date from which on the capability is available
+          type: string
+          format: date-time
+        availableUntil:
+          description: The date until data is available for the capability
+          type: string
+          format: date-time
     TimeResolution:
       description: The possible time granularity of the data
       type: string
@@ -21,7 +38,6 @@ components:
         - monthly
         - annual
         - multi_annual
-
     Station:
       description: A Station which takes measurements
       type: object
@@ -38,29 +54,46 @@ components:
         location:
           type: object
           description: A GeoJSON representation of the stations location
-        capabilities:
-          type: object
+        historical:
+          type: boolean
           description: |
-            An object which shows the data types and the available time 
-            resolutions.
-            The key identifies the data type available and the value contains
-            the available time resolutions for the type of data.
-          example:
-            precipitation:
-              - daily
-              - 1_minute
-              - hourly
-            solar:
-              - hourly
-              - 10_minutes
-          additionalProperties:
-            type: array
-            example:
-              - daily
-              - 1_minute
-              - hourly
-            items:
-              $ref: "#/components/schemas/TimeResolution"
+            Indicates that the station is historical and does not supply new
+            data
+        capabilities:
+          type: array
+          description: |
+           An array containing the different capability descriptors
+          items:
+            $ref: '#/components/schemas/Capability'
+    TimeseriesMetadata:
+      type: object
+      properties:
+        name:
+          title: Field Name
+          description: |
+            The field name used in the DWD Open Data Portal and the response to
+            identify the field
+          type: string
+        description:
+          title: Field Description
+          description: |
+            A <i>German</i> description of the field providing additional
+            context
+          type: string
+        unit:
+          title: Unit of Measurement
+          description: |
+            The unit used to measure the data within this field
+          type: string
+        availableFrom:
+          description: The date from which on the field data is available
+          type: string
+          format: date-time
+        availableUntil:
+          description: The date until the field data is available
+          type: string
+          format: date-time
+
 
 tags:
   - name: Discovery
@@ -81,8 +114,10 @@ paths:
       description: |
         This endpoint allows the discovery of all stations currently available
         on the open data platform.
-        Since the service needs to iterate through many directories and needs
-        to make may request, the discovery may take up to 45 seconds to finish.
+        This data is periodically pulled and cached from the open data platform
+        to lighten the load on the servers and allow faster responses
+      tags:
+        - Discovery
       responses:
         200:
           description: Discovery completed successfully
@@ -127,7 +162,7 @@ paths:
         502:
           description: OpenData Portal not reachable
 
-  /{stationID}/{data-capability}:
+  /{stationID}/{dataType}:
     parameters:
       - in: path
         name: stationID
@@ -139,7 +174,7 @@ paths:
           pattern: '^\d{5}$'
         required: true
       - in: path
-        name: data-capability
+        name: dataType
         description: |
           The capability of the station returned in the Station object
         schema:
@@ -147,7 +182,7 @@ paths:
         required: true
 
     get:
-      summary: Check if the data capability is available
+      summary: Check if the data type is available
       description: |
         A request to this endpoint checks if the supplied data capability is
         available for the station and returns the available granularity levels 
@@ -177,7 +212,7 @@ paths:
             Either the station does not support this data capability or the
             station is unknown
 
-  /{stationID}/{data-capability}/{granularity}:
+  /{stationID}/{dataType}/{granularity}:
     parameters:
       - in: path
         name: stationID
@@ -189,7 +224,7 @@ paths:
           pattern: '^\d{5}$'
         required: true
       - in: path
-        name: data-capability
+        name: dataType
         description: |
           The data capability from which the data shall be read by the service
         schema:
@@ -206,6 +241,22 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: from
+        description: |
+          The unix timestamp setting the date after which a measurement needs
+          to be recorded to be included in the response
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: until
+        description: |
+          The unix timestamp setting the date before which a measurement needs
+          to be recorded to be included in the response
+        schema:
+          type: integer
+          format: int64
     
 
     get:
@@ -224,141 +275,26 @@ paths:
               schema:
                 type: object
                 properties:
-                  data:
+                  timeseries:
                     type: array
                     items:
                       type: object
                       properties:
-                        ds:
+                        ts:
                           type: integer
                           format: int64
                           title: UNIX timestamp
                           description: |
                             the date and time at which the data has been recorded
-                        qn:
-                          type: integer
-                          enum:
-                            - 1
-                            - 2
-                            - 3
-                          title: Quality niveau
-                          description: |
-                            the technical measures for quality assurance that the
-                            data was piped through
                       additionalProperties: { }
                       example:
-                        ds: 1699601722
+                        ts: 1699601722
                         qn: 1
                         RWS_DAU_10: -999
                         RWS_10: 0.00
                         RWS_IND_10: -999
-                  fieldDescriptors:
-                    type: object
-                    additionalProperties: {}
-                    title: Field Descriptors
-                    description: |
-                      The field descriptors contain the descriptions provided
-                      by the meta data files for the station, data capability
-                      and granularity.
-                    example:
-                      RWS_DAU_10: duration of precipitation in the last 10 minutes
-                  datasetDescriptions:
-                    type: object
-                    title: Dataset Description Files
-                    description: |
-                      This object contains the dataset description files
-                      provided by the Open Data Portal encoded into a base64
-                      string
-                    properties:
-                      english:
-                        type: string
-                        format: binary
-                        description: English version
-                      german:
-                        type: string
-                        format: binary
-                        description: German version
-
-
-
-
-
-  /{resolution}/{data-point}/{station}:
-    parameters:
-      - in: path
-        name: resolution
-        schema:
-          allOf:
-            - $ref: '#/components/schemas/TimeResolution'
-        required: true
-      - in: path
-        name: data-point
-        schema:
-          type: string
-        required: true
-        description: |
-          The data point that shall be accessed and downloaded
-      - in: path
-        name: station
-        schema:
-          type: string
-        required: true
-        description: |
-          The station whose data shall be downloaded
-      - in: query
-        name: from
-        schema:
-          type: integer
-          format: int64
-        description: |
-          A unix timestamp denoting the **inclusive** date and time after which
-          the data needs to have been recorded to be returned
-      - in: query
-        name: until
-        schema:
-          type: integer
-          format: int64
-        description: |
-          A unix timestamp denoting the **inclusive** date and time before which
-          the data needs to have been recorded to be returned
-
-    get:
-      summary: Get data
-      responses:
-        200:
-          description: |
-            **Data found and returned**
-            
-            The requested station has data for the requested time resolution
-            and data point class and has been parsed successfully.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    ds:
-                      type: integer
-                      format: int64
-                      title: UNIX timestamp
-                      description: |
-                        the date and time at which the data has been recorded
-                    qn:
-                      type: integer
-                      enum:
-                        - 1
-                        - 2
-                        - 3
-                      title: Quality niveau
-                      description: |
-                        the technical measures for quality assurance that the
-                        data was piped through
-                  additionalProperties: { }
-                  example:
-                    ds: 1699601722
-                    qn: 1
-                    RWS_DAU_10: -999
-                    RWS_10: 0.00
-                    RWS_IND_10: -999
+                  metadata:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TimeseriesMetadata'
 
