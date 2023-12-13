@@ -1,7 +1,6 @@
 package types
 
 import (
-	"slices"
 	"time"
 
 	"github.com/paulmach/go.geojson"
@@ -31,8 +30,6 @@ func (s *Station) AddCapability(c Capability) {
 	if capabilityKnown {
 		// now get the known capability
 		knownCapability := s.DataCapabilities[capabilityIndex]
-		// now remove this capability from the array to allow editing it
-		capabilityArray := slices.Delete(s.DataCapabilities, capabilityIndex, capabilityIndex)
 		// now update the known capability if needed
 		if knownCapability.AvailableFrom.After(c.AvailableFrom) {
 			knownCapability.AvailableFrom = c.AvailableFrom
@@ -41,8 +38,7 @@ func (s *Station) AddCapability(c Capability) {
 			knownCapability.AvailableUntil = c.AvailableUntil
 		}
 		// now push the capability in the array again
-		capabilityArray = append(capabilityArray, knownCapability)
-		s.DataCapabilities = capabilityArray
+		s.DataCapabilities[capabilityIndex] = knownCapability
 		return
 	}
 	s.DataCapabilities = append(s.DataCapabilities, c)
