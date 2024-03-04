@@ -11,7 +11,7 @@ env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
-  IMAGE_NAME: wisdom-oss/api-gateway
+  IMAGE_NAME: wisdom-oss/service-dwd-proxy
 
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
