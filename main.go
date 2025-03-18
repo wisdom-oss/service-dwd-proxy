@@ -14,7 +14,6 @@ import (
 	"github.com/spf13/viper"
 
 	"microservice/internal"
-	"microservice/internal/db"
 	"microservice/router"
 )
 
@@ -28,20 +27,6 @@ var configuration *viper.Viper
 func main() {
 	_ = internal.ParseConfiguration() // error ignored as function always returns nil
 	configuration = internal.Configuration()
-
-	// setting up the database connection
-	err := db.Connect()
-	if err != nil {
-		slog.Error("unable to connect to the database", "error", err)
-		os.Exit(1)
-	}
-
-	// running database migrations stored in resources/migrations
-	err = db.MigrateDatabase()
-	if err != nil {
-		slog.Error("failed to execute database migrations", "error", err)
-		os.Exit(1)
-	}
 
 	// configure your router
 	r, err := router.Configure()

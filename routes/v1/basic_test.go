@@ -12,7 +12,6 @@ import (
 
 	validator "openapi.tanna.dev/go/validator/openapi3"
 
-	_ "microservice/internal/db"
 	"microservice/router"
 )
 
