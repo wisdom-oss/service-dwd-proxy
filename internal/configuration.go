@@ -48,6 +48,7 @@ const (
 	ConfigKey_Http_Port             = "http.port"
 	ConfigKey_Oidc_Authority        = "oidc.authority"
 	ConfigKey_Require_Authorization = "authorization.required"
+	ConfigKey_RedisURI              = "redis.uri"
 )
 
 // envAliases contains all allowed environment variable names that are used to
@@ -62,6 +63,7 @@ var envAliases = map[string][]string{
 	ConfigKey_Postgres_SSLMode:      {"PGSSLMODE", "PG_SSLMODE", "POSTGRES_SSLMODE", "DB_SSLMODE"},
 	ConfigKey_Oidc_Authority:        {"OIDC_AUTHORITY"},
 	ConfigKey_Require_Authorization: {"AUTH_REQUIRED"},
+	ConfigKey_RedisURI:              {"REDIS_URI", "REDIS_URL"},
 }
 
 // ParseConfiguration initializes the [Configuration] variable and reads the

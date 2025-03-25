@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/viper"
 
 	"microservice/internal"
+	"microservice/internal/redis"
 	"microservice/router"
 )
 
@@ -27,6 +28,13 @@ var configuration *viper.Viper
 func main() {
 	_ = internal.ParseConfiguration() // error ignored as function always returns nil
 	configuration = internal.Configuration()
+
+	// connect to the redis database
+	err := redis.Connect()
+	if err != nil {
+		slog.Error("unable to connect to redis", "error", err)
+		os.Exit(1)
+	}
 
 	// configure your router
 	r, err := router.Configure()

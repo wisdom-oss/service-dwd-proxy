@@ -19,10 +19,12 @@ func Configure() (*gin.Engine, error) {
 		return nil, err
 	}
 
-	// TODO: Add your routes in this group
 	v1 := r.Group("/v1")
 	{
-		v1.GET("/", v1Routes.BasicHandler)
+		v1.GET("/", v1Routes.Discover)
+		v1.GET("/:stationID", v1Routes.StationDetails)
+		v1.GET("/:stationID/:dataType", v1Routes.DatapointInformation)
+		v1.GET("/:stationID/:dataType/:resolution", v1Routes.Timeseries)
 	}
 
 	return r, nil
