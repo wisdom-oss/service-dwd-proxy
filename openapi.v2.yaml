@@ -101,19 +101,6 @@ paths:
       description: |
         This endpoint generates a list of all stations that are available on the
         DWD data portal.
-        
-        If this is the first request after a restart, or the cache timed out,
-        the request might take a bit longer, as the proxy traverses through the
-        directories of the OpenData Portal.
-      parameters:
-        - in: query
-          name: fresh
-          allowEmptyValue: true
-          description: |
-            Bypass the cache and enforce a new polling of the OpenData portal
-          schema:
-            type: boolean
-            default: false
 
       operationId: station-list
       responses:
