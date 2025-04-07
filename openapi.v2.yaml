@@ -1,0 +1,136 @@
+openapi: 3.1.1
+info:
+  title: DWD Weather Observations Proxy
+  description: DWD Weather Observations Proxy
+  version: 2.0.0
+  license:
+    name: CC BY 4.0
+servers:
+  - url: '/api/dwd/v2'
+
+
+components:
+  schemas:
+    StationFeature:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - Feature
+        id:
+          type: string
+        geometry:
+          $ref: "#/components/schemas/PointGeometry"
+        properties:
+          type: object
+          properties:
+            name:
+              type: string
+            products:
+              description: Mapping of supported granularities to each product
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - annual
+                    - monthly
+                    - daily
+                    - subDaily
+                    - hourly
+                    - every10Minutes
+                    - every5Minutes
+                    - everyMinute
+
+                  
+
+
+    PointGeometry:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - Point
+        coordinates:
+          type: array
+          minItems: 2
+          maxItems: 3
+          items:
+            type: number
+
+paths:
+  /:
+    get:
+      operationId: health
+      summary: Check Connection
+      description: |
+        This endpoint allows checking the connectivity of the proxy to the
+        DWD servers.
+        This also allows for checking your own connectivity to the proxy.
+      responses:
+        "200":
+          description: Healthcheck Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  required:
+                    - healthy
+                  properties:
+                    healthy:
+                      type: boolean
+                    reason:
+                      type: string
+                      description: A reason as to why the healthy field is false
+                      $comment: "This field is omitted if it's not used"
+              example:
+                "climateObservations":
+                  healthy: true
+                "europeanGrids":
+                  healthy: false
+                  reason: "response indicated not ok"
+  
+  /stations:
+    get:
+      summary: Retrieve All Stations
+      description: |
+        This endpoint generates a list of all stations that are available on the
+        DWD data portal.
+        
+        If this is the first request after a restart, or the cache timed out,
+        the request might take a bit longer, as the proxy traverses through the
+        directories of the OpenData Portal.
+      parameters:
+        - in: query
+          name: fresh
+          allowEmptyValue: true
+          description: |
+            Bypass the cache and enforce a new polling of the OpenData portal
+          schema:
+            type: boolean
+            default: false
+
+      operationId: station-list
+      responses:
+        "200":
+          description: Feature Collection
+          content:
+            "application/json":
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - FeatureCollection
+                  features:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StationFeature"
+                      
+
