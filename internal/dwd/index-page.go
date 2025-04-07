@@ -12,7 +12,7 @@ var ErrNotFound = errors.New("page not found")
 var ErrResponseNotOK = errors.New("response not 200")
 
 func LoadIndexPage(url string) (*html.Node, error) {
-	res, err := http.Get(url)
+	res, err := http.Get(url) //nolint:gosec
 	if err != nil {
 		return nil, fmt.Errorf("index page request failed: %w", err)
 	}
