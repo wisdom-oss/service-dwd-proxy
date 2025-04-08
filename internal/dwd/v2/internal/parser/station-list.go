@@ -2,9 +2,11 @@ package parser
 
 import (
 	"encoding/csv"
+	"errors"
 	"io"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/twpayne/go-geom"
 	"golang.org/x/text/encoding/charmap"
@@ -29,14 +31,20 @@ const (
 	idx_Fee
 )
 
-func ParseStationList(r io.Reader) (stations []v2.Station, err error) {
+const (
+	df_DayOnly  = "20060102"
+	df_HourOnly = "2006010215"
+	df_Full     = "200601021504"
+)
+
+func ParseStationList(r io.Reader) (stations []v2.Station, dates [][2]time.Time, err error) {
 	csvReader := csv.NewReader(transform.NewReader(r, charmap.Windows1252.NewDecoder()))
 	csvReader.Comma = ' '
 	csvReader.FieldsPerRecord = -1
 	csvReader.TrimLeadingSpace = true
 	rows, err := csvReader.ReadAll()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	for num, data := range rows {
@@ -61,15 +69,18 @@ func ParseStationList(r io.Reader) (stations []v2.Station, err error) {
 		var longitude, latitude, height float64
 		longitude, err = strconv.ParseFloat(cleanedData[idx_Longitude], 64)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		latitude, err = strconv.ParseFloat(cleanedData[idx_Latitude], 64)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		height, err = strconv.ParseFloat(cleanedData[idx_StationHeight], 64)
+		if err != nil {
+			return nil, nil, err
+		}
 
 		location := geom.NewPointFlat(geom.XYZ, []float64{longitude, latitude, height})
 		location.SetSRID(coordinateSRID)
@@ -80,7 +91,52 @@ func ParseStationList(r io.Reader) (stations []v2.Station, err error) {
 			Location: location,
 		}
 
+		var startDate, endDate time.Time
+		switch len(cleanedData[idx_DataStartDate]) {
+		case len(df_Full):
+			startDate, err = time.Parse(df_Full, cleanedData[idx_DataStartDate])
+		case len(df_HourOnly):
+			startDate, err = time.Parse(df_HourOnly, cleanedData[idx_DataStartDate])
+		case len(df_DayOnly):
+			startDate, err = time.Parse(df_DayOnly, cleanedData[idx_DataStartDate])
+		default:
+			return nil, nil, errors.New("unsupported date string for data start")
+		}
+		if err != nil {
+			return nil, nil, err
+		}
+
+		switch len(strings.TrimSpace(cleanedData[idx_DataEndDate])) {
+		case len(df_Full):
+			endDate, err = time.Parse(df_Full, (cleanedData[idx_DataEndDate]))
+		case len(df_HourOnly):
+			endDate, err = time.Parse(df_HourOnly, (cleanedData[idx_DataEndDate]))
+		case len(df_DayOnly):
+			endDate, err = time.Parse(df_DayOnly, (cleanedData[idx_DataEndDate]))
+		default:
+			return nil, nil, errors.New("unsupported date string for data end")
+
+		}
+		if err != nil {
+			return nil, nil, err
+		}
+
+		mez, err := time.LoadLocation("Etc/GMT-1")
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if startDate.Year() < 2000 {
+			startDate = startDate.In(mez)
+		}
+
+		if endDate.Year() < 2000 {
+
+			endDate = startDate.In(mez)
+		}
+
 		stations = append(stations, station)
+		dates = append(dates, [2]time.Time{startDate, endDate})
 
 	}
 	return

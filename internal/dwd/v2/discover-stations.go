@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"time"
 
 	"golang.org/x/sync/errgroup"
 
@@ -106,14 +107,25 @@ func DiscoverStations(databaseUrl string, granularity Granularity, product Produ
 				return err
 			}
 
-			parsedStations, err := parser.ParseStationList(res.Body)
+			parsedStations, dateAreas, err := parser.ParseStationList(res.Body)
 			if err != nil {
 				return err
 			}
 
-			arrayLock.Lock()
-			stations = append(stations, parsedStations...)
-			arrayLock.Unlock()
+			for i := range parsedStations {
+				station := parsedStations[i]
+				dateAvailabliliy := dateAreas[i]
+
+				station.SupportedProducts = map[string]map[string][2]time.Time{
+					product.String(): {
+						granularity.String(): dateAvailabliliy,
+					},
+				}
+
+				arrayLock.Lock()
+				stations = append(stations, station)
+				arrayLock.Unlock()
+			}
 			return nil
 		})
 	}

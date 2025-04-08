@@ -3,7 +3,6 @@ package v2
 import (
 	"fmt"
 	"net/http"
-	"slices"
 	"sync"
 	"time"
 
@@ -12,7 +11,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	dwd "microservice/internal/dwd/v2"
-	"microservice/internal/dwd/v2/dwdTypes"
 	v2 "microservice/types/v2"
 )
 
@@ -31,15 +29,11 @@ func DiscoverAllStations(c *gin.Context) {
 					return err
 				}
 
-				for _, discoveredStation := range discoveredStations {
-					discoveredStation.SupportedProducts = map[string][]dwdTypes.Granularity{
-						product.String(): {granularity},
-					}
+				for _, station := range discoveredStations {
 					arrayLock.Lock()
-					allStations = append(allStations, discoveredStation)
+					allStations = append(allStations, station)
 					arrayLock.Unlock()
 				}
-
 				return nil
 			})
 
@@ -67,12 +61,7 @@ func DiscoverAllStations(c *gin.Context) {
 			continue
 		}
 
-		for product, granularity := range station.SupportedProducts {
-			if slices.Contains(processedStation.SupportedProducts[product], granularity[0]) {
-				continue
-			}
-			processedStation.SupportedProducts[product] = append(processedStation.SupportedProducts[product], granularity...)
-		}
+		processedStation.MergeProducts(station)
 
 		mergedStations[mapKey] = processedStation
 	}
