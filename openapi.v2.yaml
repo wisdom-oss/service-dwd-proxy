@@ -11,6 +11,18 @@ servers:
 
 components:
   schemas:
+    DateTimeRange:
+      type: object
+      properties:
+        from:
+          type: string
+          format: date-time
+        until:
+          type: string
+          format: date-time
+      examples:
+        - from: "1979-01-01T01:00:00+01:00"
+          until: "2006-12-31T00:00:00Z"
     StationFeature:
       type: object
       properties:
@@ -31,21 +43,37 @@ components:
               description: Mapping of supported granularities to each product
               type: object
               additionalProperties:
-                type: array
-                items:
-                  type: string
-                  enum:
-                    - annual
-                    - monthly
-                    - daily
-                    - subDaily
-                    - hourly
-                    - every10Minutes
-                    - every5Minutes
-                    - everyMinute
-
-                  
-
+                type: object
+                description: The supported granularities of the product
+                additionalProperties:
+                  $ref: "#/components/schemas/DateTimeRange"
+                  description: Timestamps inbetween which data exists
+      examples:
+        - type: "Feature"
+          id: "02514"
+          geometry:
+            type: "Point"
+            coordinates:
+              - 9.9333
+              - 54.6667
+              - 18
+          properties:
+            name: "Kappeln"
+            products:
+              morePrecipitation:
+                annual:
+                  from: "1888-01-01T01:00:00+01:00"
+                  until: "2006-12-31T00:00:00Z"
+                daily:
+                  from: "1888-01-01T01:00:00+01:00"
+                  until: "2006-12-31T00:00:00Z"
+                monthly:
+                  from: "1979-01-01T01:00:00+01:00"
+                  until: "2006-12-31T00:00:00Z"
+              moreWeatherPhenomena:
+                daily:
+                  from: "1888-01-01T01:00:00+01:00"
+                  until: "2006-12-31T00:00:00Z"
 
     PointGeometry:
       type: object
@@ -60,6 +88,12 @@ components:
           maxItems: 3
           items:
             type: number
+      examples:
+        - type: "Point"
+          coordinates:
+            - 9.9333
+            - 54.6667
+            - 18
 
 paths:
   /:
