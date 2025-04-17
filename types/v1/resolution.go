@@ -62,115 +62,106 @@ func (r Resolution) String() string {
 	return strings.Trim(result, ",")
 }
 
-// function.
+// nolint: goconst
 func (r *Resolution) ParseString(s string) {
 	var parsedResolution Resolution
 	parts := strings.Split(s, ",")
 	for _, part := range parts {
 		switch part {
 		case "1_minute":
-			parsedResolution = parsedResolution | OneMinute
-			break
+			parsedResolution |= OneMinute
 		case "5_minutes":
-			parsedResolution = parsedResolution | FiveMinutes
-			break
+			parsedResolution |= FiveMinutes
 		case "10_minutes":
-			parsedResolution = parsedResolution | TenMinutes
-			break
+			parsedResolution |= TenMinutes
 		case "hourly":
-			parsedResolution = parsedResolution | Hourly
-			break
+			parsedResolution |= Hourly
 		case "subdaily":
-			parsedResolution = parsedResolution | SubDaily
-			break
+			parsedResolution |= SubDaily
 		case "daily":
-			parsedResolution = parsedResolution | Daily
-			break
+			parsedResolution |= Daily
 		case "monthly":
-			parsedResolution = parsedResolution | Monthly
-			break
+			parsedResolution |= Monthly
 		case "annual":
-			parsedResolution = parsedResolution | Annually
-			break
+			parsedResolution |= Annually
 		case "multi_annual":
-			parsedResolution = parsedResolution | MultiAnnually
-			break
+			parsedResolution |= MultiAnnually
 		}
 	}
 	*r = parsedResolution
 }
 
-// function as it expects this by default.
+// nolint: goconst
 func (r *Resolution) ParseStringWithSeparator(s, sep string) {
 	var parsedResolution Resolution
 	parts := strings.Split(s, sep)
 	for _, part := range parts {
 		switch part {
 		case "1_minute":
-			parsedResolution = parsedResolution | OneMinute
-			break
+			parsedResolution |= OneMinute
+
 		case "5_minutes":
-			parsedResolution = parsedResolution | FiveMinutes
-			break
+			parsedResolution |= FiveMinutes
+
 		case "10_minutes":
-			parsedResolution = parsedResolution | TenMinutes
-			break
+			parsedResolution |= TenMinutes
+
 		case "hourly":
-			parsedResolution = parsedResolution | Hourly
-			break
+			parsedResolution |= Hourly
+
 		case "subdaily":
-			parsedResolution = parsedResolution | SubDaily
-			break
+			parsedResolution |= SubDaily
+
 		case "daily":
-			parsedResolution = parsedResolution | Daily
-			break
+			parsedResolution |= Daily
+
 		case "monthly":
-			parsedResolution = parsedResolution | Monthly
-			break
+			parsedResolution |= Monthly
+
 		case "annual":
-			parsedResolution = parsedResolution | Annually
-			break
+			parsedResolution |= Annually
+
 		case "multi_annual":
-			parsedResolution = parsedResolution | MultiAnnually
-			break
+			parsedResolution |= MultiAnnually
+
 		}
 	}
 	*r = parsedResolution
 }
 
-// key under which the resolutions are available.
+// nolint: goconst
 func (r *Resolution) ParseUrlValues(q url.Values, key string) {
 	var parsedResolution Resolution
 	parts := q[key]
 	for _, part := range parts {
 		switch part {
 		case "1_minute":
-			parsedResolution = parsedResolution | OneMinute
-			break
+			parsedResolution |= OneMinute
+
 		case "5_minutes":
-			parsedResolution = parsedResolution | FiveMinutes
-			break
+			parsedResolution |= FiveMinutes
+
 		case "10_minutes":
-			parsedResolution = parsedResolution | TenMinutes
-			break
+			parsedResolution |= TenMinutes
+
 		case "hourly":
-			parsedResolution = parsedResolution | Hourly
-			break
+			parsedResolution |= Hourly
+
 		case "subdaily":
-			parsedResolution = parsedResolution | SubDaily
-			break
+			parsedResolution |= SubDaily
+
 		case "daily":
-			parsedResolution = parsedResolution | Daily
-			break
+			parsedResolution |= Daily
+
 		case "monthly":
-			parsedResolution = parsedResolution | Monthly
-			break
+			parsedResolution |= Monthly
+
 		case "annual":
-			parsedResolution = parsedResolution | Annually
-			break
+			parsedResolution |= Annually
+
 		case "multi_annual":
-			parsedResolution = parsedResolution | MultiAnnually
-			break
+			parsedResolution |= MultiAnnually
+
 		}
 	}
 	*r = parsedResolution

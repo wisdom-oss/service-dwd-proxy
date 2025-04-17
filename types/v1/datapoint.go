@@ -103,55 +103,55 @@ func (dt *DataType) ParseStringWithSeperator(s, sep string) {
 	for _, part := range parts {
 		switch part {
 		case "precipitation":
-			parsedDataTypes = parsedDataTypes | Precipitation
+			parsedDataTypes |= Precipitation
 		case "air_temperature":
-			parsedDataTypes = parsedDataTypes | AirTemperature
+			parsedDataTypes |= AirTemperature
 		case "extreme_temperature":
-			parsedDataTypes = parsedDataTypes | ExtremeTemperature
+			parsedDataTypes |= ExtremeTemperature
 		case "extreme_wind":
-			parsedDataTypes = parsedDataTypes | ExtremeWind
+			parsedDataTypes |= ExtremeWind
 		case "solar":
-			parsedDataTypes = parsedDataTypes | Solar
+			parsedDataTypes |= Solar
 		case "wind":
-			parsedDataTypes = parsedDataTypes | Wind
+			parsedDataTypes |= Wind
 		case "more_precip":
-			parsedDataTypes = parsedDataTypes | MorePrecipitation
+			parsedDataTypes |= MorePrecipitation
 		case "more_phenomena":
-			parsedDataTypes = parsedDataTypes | MorePhenomena
+			parsedDataTypes |= MorePhenomena
 		case "soil_temperature":
-			parsedDataTypes = parsedDataTypes | SoilTemperature
+			parsedDataTypes |= SoilTemperature
 		case "water_equiv":
-			parsedDataTypes = parsedDataTypes | WaterEquivalent
+			parsedDataTypes |= WaterEquivalent
 		case "weather_phenomena":
-			parsedDataTypes = parsedDataTypes | WeatherPhenomena
+			parsedDataTypes |= WeatherPhenomena
 		case "cloud_type":
-			parsedDataTypes = parsedDataTypes | CloudType
+			parsedDataTypes |= CloudType
 		case "cloudiness":
-			parsedDataTypes = parsedDataTypes | Cloudiness
+			parsedDataTypes |= Cloudiness
 		case "dew_point":
-			parsedDataTypes = parsedDataTypes | DewPoint
+			parsedDataTypes |= DewPoint
 		case "moisture":
-			parsedDataTypes = parsedDataTypes | Moisture
+			parsedDataTypes |= Moisture
 		case "pressure":
-			parsedDataTypes = parsedDataTypes | Pressure
+			parsedDataTypes |= Pressure
 		case "sun":
-			parsedDataTypes = parsedDataTypes | Sun
+			parsedDataTypes |= Sun
 		case "visibility":
-			parsedDataTypes = parsedDataTypes | Visibility
+			parsedDataTypes |= Visibility
 		case "wind_synop":
-			parsedDataTypes = parsedDataTypes | WindSynopsis
+			parsedDataTypes |= WindSynopsis
 		case "climate_indices":
-			parsedDataTypes = parsedDataTypes | ClimateIndices
+			parsedDataTypes |= ClimateIndices
 		case "kl":
-			parsedDataTypes = parsedDataTypes | StationObservations
+			parsedDataTypes |= StationObservations
 		case "standard_format":
-			parsedDataTypes = parsedDataTypes | StandardFormat
+			parsedDataTypes |= StandardFormat
 		case "wind_test":
-			parsedDataTypes = parsedDataTypes | WindTest
+			parsedDataTypes |= WindTest
 		case "soil":
-			parsedDataTypes = parsedDataTypes | Soil
+			parsedDataTypes |= Soil
 		case "more_weather_phenomena":
-			parsedDataTypes = parsedDataTypes | MoreWeatherPhenomena
+			parsedDataTypes |= MoreWeatherPhenomena
 		default:
 			continue
 		}
