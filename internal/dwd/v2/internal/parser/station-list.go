@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	_ "time/tzdata"
+
 	"github.com/twpayne/go-geom"
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/transform"
