@@ -39,7 +39,7 @@ func DatapointInformation(c *gin.Context) {
 	}
 
 	datapoint := types.DataType(0)
-	datapoint.ParseString(c.Param("datapoint"))
+	datapoint.ParseString(c.Param("dataType"))
 
 	if datapoint == 0 {
 		errUnsupportedDatapoint.Emit(c)

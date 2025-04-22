@@ -30,7 +30,7 @@ func Timeseries(c *gin.Context) {
 	}
 
 	datapoint := types.DataType(0)
-	datapoint.ParseString(c.Param("datapoint"))
+	datapoint.ParseString(c.Param("dataType"))
 
 	if datapoint == 0 {
 		errUnsupportedDatapoint.Emit(c)
@@ -40,7 +40,7 @@ func Timeseries(c *gin.Context) {
 	resolution := types.Resolution(0)
 	resolution.ParseString(c.Param("resolution"))
 
-	url := fmt.Sprint("%s/%s/%s/%s", DWD_OpenData_Host, DWD_OpenData_Base, resolution, datapoint)
+	url := fmt.Sprintf("%s/%s/%s/%s", DWD_OpenData_Host, DWD_OpenData_Base, resolution, datapoint)
 
 	page, err := dwd.LoadIndexPage(url)
 	if err != nil {
