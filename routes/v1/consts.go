@@ -7,5 +7,5 @@ const contentType = "application/json"
 
 const RedisKey_StationList = "dwd-station-list"
 
-const DWD_OpenData_Host = "opendata.dwd.de"
+const DWD_OpenData_Host = "https://opendata.dwd.de"
 const DWD_OpenData_Base = "/climate_environment/CDC/observations_germany/climate"

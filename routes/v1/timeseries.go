@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -40,7 +41,12 @@ func Timeseries(c *gin.Context) {
 	resolution := types.Resolution(0)
 	resolution.ParseString(c.Param("resolution"))
 
-	url := fmt.Sprintf("%s/%s/%s/%s", DWD_OpenData_Host, DWD_OpenData_Base, resolution, datapoint)
+	url, err := url.JoinPath(DWD_OpenData_Host, DWD_OpenData_Base, resolution.String(), datapoint.String())
+	if err != nil {
+		c.Abort()
+		_ = c.Error(err)
+		return
+	}
 
 	page, err := dwd.LoadIndexPage(url)
 	if err != nil {
