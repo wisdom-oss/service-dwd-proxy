@@ -7,6 +7,7 @@ import (
 )
 
 func Download(url string) (string, error) {
+	_ = os.MkdirAll("/tmp", os.ModeDir|os.ModePerm)
 	f, err := os.CreateTemp("", "dwd-proxy-*")
 	if err != nil {
 		return "", err

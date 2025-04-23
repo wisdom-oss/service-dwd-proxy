@@ -19,7 +19,6 @@ ENV GIN_MODE=release
 
 COPY --from=build-service /etc/ssl/cert.pem /etc/ssl/cert.pem
 COPY --from=build-service /service /service
-RUN mkdir -p /tmp
 ENTRYPOINT ["/service"]
 EXPOSE 8000
 
