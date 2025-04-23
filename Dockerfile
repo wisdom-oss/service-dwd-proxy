@@ -12,8 +12,8 @@ FROM scratch
 # TODO: Configure the labels according to the target deployment
 LABEL traefik.enable=true
 LABEL traefik.http.routers.dwd.middlewares=dwd
-LABEL traefik.http.routers.dwd.rule="PathPrefix(`/api/dwd`)"
-LABEL traefik.http.middlewares.dwd.stripprefix.prefixes="/api/dwd"
+LABEL traefik.http.routers.dwd.rule="PathPrefix(`/api/dwd`),PathPrefix(`/dwd`)"
+LABEL traefik.http.middlewares.dwd.stripprefix.prefixes="/api/dwd,/dwd"
 
 ENV GIN_MODE=release
 
