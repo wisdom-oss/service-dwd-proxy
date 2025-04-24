@@ -39,6 +39,8 @@ components:
           properties:
             name:
               type: string
+            id:
+              type: string
             products:
               description: Mapping of supported granularities to each product
               type: object
