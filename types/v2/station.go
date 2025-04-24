@@ -58,6 +58,7 @@ func (s Station) ToFeature() *geojson.Feature {
 		Properties: map[string]any{
 			"name":     s.Name,
 			"products": products,
+			"id":       s.ID,
 		},
 	}
 	return &f
