@@ -12,7 +12,7 @@ func Download(url string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	res, err := http.Get(url)
+	res, err := http.Get(url) //nolint:gosec
 	if err != nil {
 		return "", err
 	}

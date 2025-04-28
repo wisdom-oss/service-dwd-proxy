@@ -128,11 +128,11 @@ func ParseStationList(r io.Reader) (stations []v2.Station, dates [][2]time.Time,
 			return nil, nil, err
 		}
 
-		if startDate.Year() < 2000 {
+		if startDate.Year() < 2000 { //nolint:mnd
 			startDate = startDate.In(mez)
 		}
 
-		if endDate.Year() < 2000 {
+		if endDate.Year() < 2000 { //nolint:mnd
 
 			endDate = startDate.In(mez)
 		}
