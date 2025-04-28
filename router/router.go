@@ -32,6 +32,7 @@ func Configure() (*gin.Engine, error) {
 	{
 		v2.GET("/", v2Routes.ValidateConnection)
 		v2.GET("/stations", v2Routes.DiscoverAllStations)
+		v2.GET("/timeseries/:database/:product/:granularity/:stationID", v2Routes.Timeseries)
 	}
 
 	return r, nil
