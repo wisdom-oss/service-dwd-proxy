@@ -17,7 +17,7 @@ const (
 	QF_Objected                       QualityFlag = 5    // objected
 	QF_OnlyFormalCheck                QualityFlag = 6    // only formally checked
 	QF_FormalObjection                QualityFlag = 7    // formal objection
-	QF_FlagNonExisitent               QualityFlag = -999 // quality flag does not exist
+	QF_FlagMissing                    QualityFlag = -999 // quality flag is missing from the dataset or is invalid
 )
 
 func (qf QualityFlag) String() string {
@@ -38,8 +38,8 @@ func (qf QualityFlag) String() string {
 		return "onlyFormalCheck"
 	case QF_FormalObjection:
 		return "formalObjection"
-	case QF_FlagNonExisitent:
-		return "flagNonExistent"
+	case QF_FlagMissing:
+		return "missing"
 	default:
 		return ""
 	}
@@ -47,7 +47,7 @@ func (qf QualityFlag) String() string {
 
 func (qf *QualityFlag) Parse(src any) error {
 	if v := reflect.ValueOf(src); !v.IsValid() {
-		*qf = QF_FlagNonExisitent
+		*qf = QF_FlagMissing
 		return nil
 	}
 
@@ -63,7 +63,7 @@ func (qf *QualityFlag) Parse(src any) error {
 			return nil
 		}
 
-		*qf = QF_FlagNonExisitent
+		*qf = QF_FlagMissing
 		return nil
 	case int8:
 		if 0 <= v && v <= 7 {
@@ -71,7 +71,7 @@ func (qf *QualityFlag) Parse(src any) error {
 			return nil
 		}
 
-		*qf = QF_FlagNonExisitent
+		*qf = QF_FlagMissing
 		return nil
 	case int16:
 		if 0 <= v && v <= 7 {
@@ -79,7 +79,7 @@ func (qf *QualityFlag) Parse(src any) error {
 			return nil
 		}
 
-		*qf = QF_FlagNonExisitent
+		*qf = QF_FlagMissing
 		return nil
 	case int32:
 		if 0 <= v && v <= 7 {
@@ -87,7 +87,7 @@ func (qf *QualityFlag) Parse(src any) error {
 			return nil
 		}
 
-		*qf = QF_FlagNonExisitent
+		*qf = QF_FlagMissing
 		return nil
 	case int64:
 		if 0 <= v && v <= 7 {
@@ -95,7 +95,7 @@ func (qf *QualityFlag) Parse(src any) error {
 			return nil
 		}
 
-		*qf = QF_FlagNonExisitent
+		*qf = QF_FlagMissing
 		return nil
 
 	default:
@@ -120,15 +120,15 @@ func (qf *QualityFlag) Parse(src any) error {
 	case QF_FormalObjection.String():
 		*qf = QF_FormalObjection
 	default:
-		*qf = QF_FlagNonExisitent
+		*qf = QF_FlagMissing
 	}
 	return nil
 
 }
 
 func (qf QualityFlag) MarshalJSON() ([]byte, error) {
-	if qf == QF_FlagNonExisitent {
-		return nil, nil
+	if qf == QF_FlagMissing {
+		return []byte("null"), nil
 	}
 	return json.Marshal(qf.String())
 }
