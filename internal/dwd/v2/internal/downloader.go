@@ -15,7 +15,7 @@ const filenamePattern = "dwd-proxy-*%s"
 var errStatusNot200 = errors.New("the remote server did not indicate a successful request")
 
 func Download(uri string) (filepath string, err error) {
-	res, err := http.Get(uri)
+	res, err := http.Get(uri) //nolint:gosec
 	if err != nil {
 		return "", err
 	}
