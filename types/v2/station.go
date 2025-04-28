@@ -6,14 +6,16 @@ import (
 
 	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/geojson"
+
+	"microservice/internal/dwd/v2/dwdTypes"
 )
 
 type Station struct {
-	ID                string                             `csv:"id"`
-	Name              string                             `csv:"name"`
-	Height            float64                            `csv:"height"`
-	Location          *geom.Point                        `csv:"geometry"`
-	SupportedProducts map[string]map[string][2]time.Time `csv:"-"`
+	ID                string                                                      `csv:"id"`
+	Name              string                                                      `csv:"name"`
+	Height            float64                                                     `csv:"height"`
+	Location          *geom.Point                                                 `csv:"geometry"`
+	SupportedProducts map[dwdTypes.Product]map[dwdTypes.Granularity]DateTimeRange `csv:"-"`
 }
 
 func (s Station) MarshalJSON() ([]byte, error) {
@@ -29,24 +31,24 @@ func (s Station) ToFeature() *geojson.Feature {
 	})
 
 	for product, granularityAvailablility := range s.SupportedProducts {
-		granularities := make([]string, 0, len(s.SupportedProducts[product]))
+		granularities := make([]dwdTypes.Granularity, 0, len(s.SupportedProducts[product]))
 		for granularity := range s.SupportedProducts[product] {
 			granularities = append(granularities, granularity)
 		}
 
 		for _, granulartiy := range granularities {
-			if products[product] == nil {
-				products[product] = make(map[string]struct {
+			if products[product.String()] == nil {
+				products[product.String()] = make(map[string]struct {
 					From  time.Time `json:"from"`
 					Until time.Time `json:"until"`
 				})
 			}
-			products[product][granulartiy] = struct {
+			products[product.String()][granulartiy.String()] = struct {
 				From  time.Time `json:"from"`
 				Until time.Time `json:"until"`
 			}{
-				From:  granularityAvailablility[granulartiy][0],
-				Until: granularityAvailablility[granulartiy][1],
+				From:  granularityAvailablility[granulartiy].Start,
+				Until: granularityAvailablility[granulartiy].End,
 			}
 
 		}
@@ -72,12 +74,12 @@ func (this *Station) MergeProducts(other Station) {
 			continue
 		}
 
-		thisGranularities := make([]string, 0, len(this.SupportedProducts[otherProduct]))
+		thisGranularities := make([]dwdTypes.Granularity, 0, len(this.SupportedProducts[otherProduct]))
 		for granularity := range this.SupportedProducts[otherProduct] {
 			thisGranularities = append(thisGranularities, granularity)
 		}
 
-		otherGranularities := make([]string, 0, len(other.SupportedProducts[otherProduct]))
+		otherGranularities := make([]dwdTypes.Granularity, 0, len(other.SupportedProducts[otherProduct]))
 		for granularity := range other.SupportedProducts[otherProduct] {
 			otherGranularities = append(otherGranularities, granularity)
 		}
@@ -88,27 +90,27 @@ func (this *Station) MergeProducts(other Station) {
 				continue
 			}
 
-			thisStart := this.SupportedProducts[otherProduct][granularity][0]
-			thisEnd := this.SupportedProducts[otherProduct][granularity][1]
+			thisStart := this.SupportedProducts[otherProduct][granularity].Start
+			thisEnd := this.SupportedProducts[otherProduct][granularity].End
 
-			otherStart := other.SupportedProducts[otherProduct][granularity][0]
-			otherEnd := other.SupportedProducts[otherProduct][granularity][1]
+			otherStart := other.SupportedProducts[otherProduct][granularity].Start
+			otherEnd := other.SupportedProducts[otherProduct][granularity].End
 
-			var newTimes [2]time.Time
+			var r DateTimeRange
 
 			if otherStart.Before(thisStart) {
-				newTimes[0] = otherStart
+				r.Start = otherStart
 			} else {
-				newTimes[0] = thisStart
+				r.Start = thisStart
 			}
 
 			if otherEnd.After(thisEnd) {
-				newTimes[1] = otherEnd
+				r.End = otherEnd
 			} else {
-				newTimes[1] = thisEnd
+				r.End = thisEnd
 			}
 
-			other.SupportedProducts[otherProduct][granularity] = newTimes
+			other.SupportedProducts[otherProduct][granularity] = r
 		}
 
 	}

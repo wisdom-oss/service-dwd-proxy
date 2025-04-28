@@ -8,10 +8,10 @@ import (
 	"slices"
 	"strings"
 	"sync"
-	"time"
 
 	"golang.org/x/sync/errgroup"
 
+	"microservice/internal/dwd/v2/dwdTypes"
 	"microservice/internal/dwd/v2/internal/parser"
 	v2 "microservice/types/v2"
 )
@@ -116,9 +116,12 @@ func DiscoverStations(databaseUrl string, granularity Granularity, product Produ
 				station := parsedStations[i]
 				dateAvailabliliy := dateAreas[i]
 
-				station.SupportedProducts = map[string]map[string][2]time.Time{
-					product.String(): {
-						granularity.String(): dateAvailabliliy,
+				station.SupportedProducts = map[dwdTypes.Product]map[dwdTypes.Granularity]v2.DateTimeRange{
+					product: {
+						granularity: v2.DateTimeRange{
+							Start: dateAvailabliliy[0],
+							End:   dateAvailabliliy[1],
+						},
 					},
 				}
 
