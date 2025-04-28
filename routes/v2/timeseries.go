@@ -95,7 +95,7 @@ var errTimeseriesBoundaryError = types.ServiceError{
 	Detail: "The boundaries of the timeseries are not valid (start is after end)",
 }
 
-func Timeseries(c *gin.Context) {
+func Timeseries(c *gin.Context) { //nolint:maintidx
 	database := c.Param("database")
 	databaseKeys := make([]string, 0, len(dwd.Databases))
 	for k := range dwd.Databases {
