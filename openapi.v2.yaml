@@ -11,8 +11,49 @@ servers:
 
 components:
   schemas:
+    Datapoint:
+      type: object
+      required:
+        - label
+        - ts
+        - value
+      properties:
+        label:
+          type: string
+        ts:
+          type: string
+          format: date-time
+        value:
+          type:
+            - string
+            - object
+            - array
+            - boolean
+            - integer
+            - number
+        unit:
+          type: string
+      
+    BlobFile:
+      type: object
+      required:
+        - name
+        - mime
+        - data
+      properties:
+        name:
+          type: string
+        mime:
+          type: string
+        data:
+          type: string
+          contentEncoding: base64
+
     DateTimeRange:
       type: object
+      required:
+        - from
+        - until
       properties:
         from:
           type: string
@@ -25,6 +66,10 @@ components:
           until: "2006-12-31T00:00:00Z"
     StationFeature:
       type: object
+      required:
+        - type
+        - id
+        - geometry
       properties:
         type:
           type: string
@@ -79,6 +124,9 @@ components:
 
     PointGeometry:
       type: object
+      required:
+        - type
+        - coordinates
       properties:
         type:
           type: string
@@ -146,6 +194,9 @@ paths:
             "application/json":
               schema:
                 type: object
+                required:
+                  - type
+                  - features
                 properties:
                   type:
                     type: string
@@ -155,5 +206,47 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/StationFeature"
-                      
+                    
+  /timeseries/{database}/{product}/{granularity}/{stationID}:
+    parameters:
+      - in: path
+        name: database
+        required: true
+        schema:
+          type: string
+      
+      - in: path
+        name: product
+        required: true
+        schema:
+          type: string
+
+      - in: path
+        name: granulartiy
+        required: true
+        schema:
+          type: string
+
+      - in: path
+        name: stationID
+        required: true
+        schema:
+          type: string
+
+    get:
+      summary: Download Timeseries
+      parameters:
+        - in: query
+          name: start
+          required: false
+          schema:
+            type: string
+            format: date-time
+
+        - in: query
+          name: end
+          required: false
+          schema:
+            type: string
+            format: date-time
 
