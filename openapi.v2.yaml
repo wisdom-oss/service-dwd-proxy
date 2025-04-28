@@ -11,6 +11,28 @@ servers:
 
 components:
   schemas:
+    FieldMetadata:
+      type: object
+      required:
+        - name
+        - description
+        - unit
+        - forDataFrom
+        - forDataUntil
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        unit:
+          type: string
+        forDataFrom:
+          type: string
+          format: date-time
+        forDataUntil:
+          type: string
+          format: date-time
+
     Datapoint:
       type: object
       required:
@@ -27,12 +49,27 @@ components:
           type:
             - string
             - object
-            - array
             - boolean
             - integer
             - number
+            - "null"
         unit:
-          type: string
+          type: 
+            - string
+            - "null"
+        qualityLevel:
+          type:
+            - string
+            - "null"
+          enum:
+            - unflagged
+            - noObjections
+            - corrected
+            - confirmedAfterObjection
+            - addedOrCalculated
+            - objected
+            - onlyFormalCheck
+            - formalObjection
       
     BlobFile:
       type: object
@@ -239,6 +276,7 @@ paths:
         - in: query
           name: start
           required: false
+          description: the start of the returned timeseries (inclusive)
           schema:
             type: string
             format: date-time
@@ -246,7 +284,31 @@ paths:
         - in: query
           name: end
           required: false
+          description: the end of the returned timeseries (inclusive)
           schema:
             type: string
             format: date-time
+
+      responses:
+        "200":
+          description: Timeseries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  datapoints:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Datapoint"
+                  metadata:
+                    type: array
+                    items:
+                      # todo: describe metadata as schema
+                      $ref: "#/components/schemas/FieldMetadata" 
+                  descriptionFiles:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BlobFile"
+                    
 
