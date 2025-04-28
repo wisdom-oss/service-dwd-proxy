@@ -272,19 +272,37 @@ startDownload:
 		allMetadata = append(allMetadata, metadata...)
 	}
 
+	series.Datapoints = allDatapoints
+
+	if !requestedRange.Start.IsZero() || !requestedRange.End.IsZero() {
+		if requestedRange.End.IsZero() {
+			requestedRange.End = time.Now()
+		}
+		datapoints := make([]v2.Datapoint, 0)
+
+		for _, dp := range allDatapoints {
+			if (dp.Timestamp.Equal(requestedRange.Start) || dp.Timestamp.After(requestedRange.Start)) &&
+				(dp.Timestamp.Equal(requestedRange.End) || dp.Timestamp.Before(requestedRange.End)) {
+				datapoints = append(datapoints, dp)
+			}
+		}
+
+		series.Datapoints = datapoints
+
+	}
+
 	for {
-		if slices.IsSortedFunc(allDatapoints, func(this, other v2.Datapoint) int {
+		if slices.IsSortedFunc(series.Datapoints, func(this, other v2.Datapoint) int {
 			return this.Timestamp.Compare(other.Timestamp)
 		}) {
 			break
 		}
 
-		slices.SortFunc(allDatapoints, func(this, other v2.Datapoint) int {
+		slices.SortFunc(series.Datapoints, func(this, other v2.Datapoint) int {
 			return this.Timestamp.Compare(other.Timestamp)
 		})
 	}
 
-	series.Datapoints = allDatapoints
 	series.Metadata = allMetadata
 
 	c.JSON(http.StatusOK, series)
