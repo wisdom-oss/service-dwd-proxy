@@ -43,7 +43,7 @@ func (q QualityControlProcedure) String() string {
 }
 
 func (q *QualityControlProcedure) Parse(src any) error {
-	if v := reflect.ValueOf(src); !v.IsValid() || v.IsNil() {
+	if v := reflect.ValueOf(src); !v.IsValid() {
 		return errors.New("quality control procedure may not be <nil>")
 	}
 

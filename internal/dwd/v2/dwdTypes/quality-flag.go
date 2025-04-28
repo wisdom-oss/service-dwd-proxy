@@ -46,7 +46,7 @@ func (qf QualityFlag) String() string {
 }
 
 func (qf *QualityFlag) Parse(src any) error {
-	if v := reflect.ValueOf(src); !v.IsValid() || v.IsNil() {
+	if v := reflect.ValueOf(src); !v.IsValid() {
 		*qf = QF_FlagNonExisitent
 		return nil
 	}
@@ -58,6 +58,38 @@ func (qf *QualityFlag) Parse(src any) error {
 	case []byte:
 		flag = string(v)
 	case int:
+		if 0 <= v && v <= 7 {
+			*qf = QualityFlag(v)
+			return nil
+		}
+
+		*qf = QF_FlagNonExisitent
+		return nil
+	case int8:
+		if 0 <= v && v <= 7 {
+			*qf = QualityFlag(v)
+			return nil
+		}
+
+		*qf = QF_FlagNonExisitent
+		return nil
+	case int16:
+		if 0 <= v && v <= 7 {
+			*qf = QualityFlag(v)
+			return nil
+		}
+
+		*qf = QF_FlagNonExisitent
+		return nil
+	case int32:
+		if 0 <= v && v <= 7 {
+			*qf = QualityFlag(v)
+			return nil
+		}
+
+		*qf = QF_FlagNonExisitent
+		return nil
+	case int64:
 		if 0 <= v && v <= 7 {
 			*qf = QualityFlag(v)
 			return nil

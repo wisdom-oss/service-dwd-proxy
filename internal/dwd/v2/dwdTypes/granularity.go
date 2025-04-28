@@ -70,7 +70,7 @@ func (g Granularity) UrlPart() string {
 }
 
 func (g *Granularity) Parse(src any) error {
-	if v := reflect.ValueOf(src); !v.IsValid() || v.IsNil() {
+	if v := reflect.ValueOf(src); !v.IsValid() {
 		return errors.New("granularity may not be <nil>")
 	}
 
