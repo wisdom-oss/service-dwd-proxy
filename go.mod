@@ -9,11 +9,10 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/joho/godotenv v1.5.1
 	github.com/paulmach/go.geojson v1.5.0
-	github.com/redis/go-redis/v9 v9.7.3
+ 	github.com/redis/go-redis/v9 v9.7.3
 	github.com/twpayne/go-geom v1.6.0
 	github.com/wisdom-oss/common-go/v3 v3.2.0
 	golang.org/x/sync v0.13.0
-
 )
 
 require (
