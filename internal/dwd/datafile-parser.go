@@ -13,7 +13,10 @@ import (
 	v1 "microservice/types/v1"
 )
 
-func ParseDataFile(path string, timeRange [2]time.Time) (datasets []map[string]interface{}, parameters []v1.TimeseriesField, err error) {
+func ParseDataFile(path string, timeRange [2]time.Time) ([]map[string]interface{}, []v1.TimeseriesField, error) {
+	var datasets []map[string]interface{}
+	var parameters []v1.TimeseriesField
+
 	zipFile, err := zip.OpenReader(path)
 	if err != nil {
 		return nil, nil, err
