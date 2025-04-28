@@ -9,7 +9,6 @@ RUN --mount=type=cache,target=/root/.cache/go-build GOOS=$TARGETOS GOARCH=$TARGE
 
 FROM scratch
 
-# TODO: Configure the labels according to the target deployment
 LABEL traefik.enable=true
 LABEL traefik.http.routers.dwd.middlewares=dwd
 LABEL traefik.http.routers.dwd.rule="PathPrefix(`/api/dwd`),PathPrefix(`/dwd`)"
