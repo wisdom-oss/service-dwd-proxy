@@ -8,3 +8,7 @@ const (
 var Databases = map[string]string{
 	ClimateObservationsUrlKey: ClimateObservationsBaseUrl,
 }
+
+var Products = map[string]map[Granularity][]Product{
+	ClimateObservationsUrlKey: AvailableClimateObservationProducts,
+}
