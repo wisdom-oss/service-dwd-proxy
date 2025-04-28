@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/twpayne/go-geom/encoding/geojson"
@@ -18,8 +17,6 @@ func DiscoverAllStations(c *gin.Context) {
 	var paralel errgroup.Group
 	var arrayLock sync.Mutex
 	var allStations []v2.Station
-
-	handlingStart := time.Now()
 
 	for granularity, products := range dwd.AvailableClimateObservationProducts {
 		for _, product := range products {
@@ -47,9 +44,6 @@ func DiscoverAllStations(c *gin.Context) {
 		return
 	}
 
-	stationDiscoveryDuration := time.Since(handlingStart)
-	stationDiscoveryMillis := float64(stationDiscoveryDuration.Microseconds()) / 1000
-
 	mergedStations := make(map[string]v2.Station)
 
 	for _, station := range allStations {
@@ -66,9 +60,6 @@ func DiscoverAllStations(c *gin.Context) {
 		mergedStations[mapKey] = processedStation
 	}
 
-	stationMergingDuration := time.Since(handlingStart) - stationDiscoveryDuration
-	stationMergingMillis := float64(stationMergingDuration.Microseconds()) / 1000
-
 	var features []*geojson.Feature //nolint:prealloc
 	for _, station := range mergedStations {
 		features = append(features, station.ToFeature())
@@ -76,8 +67,6 @@ func DiscoverAllStations(c *gin.Context) {
 
 	featureCollection := geojson.FeatureCollection{Features: features}
 
-	timingHeaderValue := `discovery;dur=%f;desc="Station Discovery and File Parsing", merging;dur=%f;desc="Station Merging"`
-	c.Header("Server-Timing", fmt.Sprintf(timingHeaderValue, stationDiscoveryMillis, stationMergingMillis))
 	c.JSON(http.StatusOK, &featureCollection)
 
 }
