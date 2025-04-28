@@ -87,7 +87,7 @@ func Timeseries(c *gin.Context) {
 
 		if len(fileUrls) == 0 {
 			c.Abort()
-			c.Status(999)
+			c.Status(999) //nolint:mnd
 			return
 		}
 	}
@@ -116,7 +116,7 @@ func Timeseries(c *gin.Context) {
 	var parameters []v1.TimeseriesField
 	var data []map[string]any
 
-	wg.Add(2)
+	wg.Add(2) //nolint:mnd
 	go func(fileNames []string) {
 		defer wg.Done()
 
