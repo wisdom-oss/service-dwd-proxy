@@ -48,7 +48,7 @@ const (
 	df_missing_day_time = "02.01.2006-15:04"
 )
 
-func ReadAchrive(path string) (datapoints []v2.Datapoint, metadata []v2.FieldMetadata, err error) {
+func ReadArchive(path string) (datapoints []v2.Datapoint, metadata []v2.FieldMetadata, err error) {
 	archive, err := zip.OpenReader(path)
 	if err != nil {
 		return nil, nil, err
