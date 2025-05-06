@@ -11,7 +11,7 @@ FROM scratch
 
 LABEL traefik.enable=true
 LABEL traefik.http.routers.dwd.middlewares=dwd
-LABEL traefik.http.routers.dwd.rule="PathPrefix(`/api/dwd`),PathPrefix(`/dwd`)"
+LABEL traefik.http.routers.dwd.rule="PathPrefix(`/api/dwd`) || PathPrefix(`/dwd`)"
 LABEL traefik.http.middlewares.dwd.stripprefix.prefixes="/api/dwd,/dwd"
 
 ENV GIN_MODE=release
