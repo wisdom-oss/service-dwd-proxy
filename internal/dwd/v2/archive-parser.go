@@ -6,5 +6,5 @@ import (
 )
 
 func HandleArchive(filepath string) (datapoints []v2.Datapoint, metadata []v2.FieldMetadata, err error) {
-	return parser.ReadAchrive(filepath)
+	return parser.ReadArchive(filepath)
 }
