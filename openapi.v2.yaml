@@ -251,6 +251,8 @@ paths:
         required: true
         schema:
           type: string
+          enum:
+            - climateObservations
       
       - in: path
         name: product
