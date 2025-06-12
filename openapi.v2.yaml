@@ -1,0 +1,316 @@
+openapi: 3.1.1
+info:
+  title: DWD Weather Observations Proxy
+  description: DWD Weather Observations Proxy
+  version: 2.0.0
+  license:
+    name: CC BY 4.0
+servers:
+  - url: '/api/dwd/v2'
+
+
+components:
+  schemas:
+    FieldMetadata:
+      type: object
+      required:
+        - name
+        - description
+        - unit
+        - forDataFrom
+        - forDataUntil
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        unit:
+          type: string
+        forDataFrom:
+          type: string
+          format: date-time
+        forDataUntil:
+          type: string
+          format: date-time
+
+    Datapoint:
+      type: object
+      required:
+        - label
+        - ts
+        - value
+      properties:
+        label:
+          type: string
+        ts:
+          type: string
+          format: date-time
+        value:
+          type:
+            - string
+            - object
+            - boolean
+            - integer
+            - number
+            - "null"
+        unit:
+          type: 
+            - string
+            - "null"
+        qualityLevel:
+          type:
+            - string
+            - "null"
+          enum:
+            - unflagged
+            - noObjections
+            - corrected
+            - confirmedAfterObjection
+            - addedOrCalculated
+            - objected
+            - onlyFormalCheck
+            - formalObjection
+      
+    BlobFile:
+      type: object
+      required:
+        - name
+        - mime
+        - data
+      properties:
+        name:
+          type: string
+        mime:
+          type: string
+        data:
+          type: string
+          contentEncoding: base64
+
+    DateTimeRange:
+      type: object
+      required:
+        - from
+        - until
+      properties:
+        from:
+          type: string
+          format: date-time
+        until:
+          type: string
+          format: date-time
+      examples:
+        - from: "1979-01-01T01:00:00+01:00"
+          until: "2006-12-31T00:00:00Z"
+    StationFeature:
+      type: object
+      required:
+        - type
+        - id
+        - geometry
+      properties:
+        type:
+          type: string
+          enum:
+            - Feature
+        id:
+          type: string
+        geometry:
+          $ref: "#/components/schemas/PointGeometry"
+        properties:
+          type: object
+          properties:
+            name:
+              type: string
+            id:
+              type: string
+            products:
+              description: Mapping of supported granularities to each product
+              type: object
+              additionalProperties:
+                type: object
+                description: The supported granularities of the product
+                additionalProperties:
+                  $ref: "#/components/schemas/DateTimeRange"
+                  description: Timestamps inbetween which data exists
+      examples:
+        - type: "Feature"
+          id: "02514"
+          geometry:
+            type: "Point"
+            coordinates:
+              - 9.9333
+              - 54.6667
+              - 18
+          properties:
+            name: "Kappeln"
+            products:
+              morePrecipitation:
+                annual:
+                  from: "1888-01-01T01:00:00+01:00"
+                  until: "2006-12-31T00:00:00Z"
+                daily:
+                  from: "1888-01-01T01:00:00+01:00"
+                  until: "2006-12-31T00:00:00Z"
+                monthly:
+                  from: "1979-01-01T01:00:00+01:00"
+                  until: "2006-12-31T00:00:00Z"
+              moreWeatherPhenomena:
+                daily:
+                  from: "1888-01-01T01:00:00+01:00"
+                  until: "2006-12-31T00:00:00Z"
+
+    PointGeometry:
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type:
+          type: string
+          enum:
+            - Point
+        coordinates:
+          type: array
+          minItems: 2
+          maxItems: 3
+          items:
+            type: number
+      examples:
+        - type: "Point"
+          coordinates:
+            - 9.9333
+            - 54.6667
+            - 18
+
+paths:
+  /:
+    get:
+      operationId: health
+      summary: Check Connection
+      description: |
+        This endpoint allows checking the connectivity of the proxy to the
+        DWD servers.
+        This also allows for checking your own connectivity to the proxy.
+      responses:
+        "200":
+          description: Healthcheck Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  required:
+                    - healthy
+                  properties:
+                    healthy:
+                      type: boolean
+                    reason:
+                      type: string
+                      description: A reason as to why the healthy field is false
+                      $comment: "This field is omitted if it's not used"
+              example:
+                "climateObservations":
+                  healthy: true
+                "europeanGrids":
+                  healthy: false
+                  reason: "response indicated not ok"
+  
+  /stations:
+    get:
+      summary: Retrieve All Stations
+      description: |
+        This endpoint generates a list of all stations that are available on the
+        DWD data portal.
+
+      operationId: station-list
+      responses:
+        "200":
+          description: Feature Collection
+          content:
+            "application/json":
+              schema:
+                type: object
+                required:
+                  - type
+                  - features
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - FeatureCollection
+                  features:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StationFeature"
+                    
+  /timeseries/{database}/{product}/{granularity}/{stationID}:
+    parameters:
+      - in: path
+        name: database
+        required: true
+        schema:
+          type: string
+          enum:
+            - climateObservations
+      
+      - in: path
+        name: product
+        required: true
+        schema:
+          type: string
+
+      - in: path
+        name: granulartiy
+        required: true
+        schema:
+          type: string
+
+      - in: path
+        name: stationID
+        required: true
+        schema:
+          type: string
+
+    get:
+      summary: Download Timeseries
+      parameters:
+        - in: query
+          name: start
+          required: false
+          description: the start of the returned timeseries (inclusive)
+          schema:
+            type: string
+            format: date-time
+
+        - in: query
+          name: end
+          required: false
+          description: the end of the returned timeseries (inclusive)
+          schema:
+            type: string
+            format: date-time
+
+      responses:
+        "200":
+          description: Timeseries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  datapoints:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Datapoint"
+                  metadata:
+                    type: array
+                    items:
+                      # todo: describe metadata as schema
+                      $ref: "#/components/schemas/FieldMetadata" 
+                  descriptionFiles:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BlobFile"
+                    
+
